@@ -1,0 +1,4280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hands-On Academy — Administration Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&family=Newsreader:opsz,wght@6..72,400&display=swap" rel="stylesheet">
+<style>
+  /* =====================================================================
+     Hands-On Academy portal — visual system
+
+     Borders do the least work possible: one hairline at 1px, nothing
+     heavier, and no rule anywhere that a whitespace gap could do instead.
+     Colour carries meaning, not decoration — red appears on the active nav
+     item, the one primary action per screen, and overdue money. Everything
+     else is greyscale.
+     ===================================================================== */
+  :root {
+    --bg:            #f6f7f9;
+    --surface:       #ffffff;
+    --surface-2:     #f9fafb;
+    --surface-3:     #f2f4f7;
+
+    --border:        #e4e7ec;
+    --border-strong: #d0d5dd;
+
+    --text:          #101828;
+    --text-2:        #475467;
+    --text-3:        #667085;
+
+    --brand:         #bf3c36;
+    --brand-dark:    #a2312c;
+    --brand-tint:    #fef3f2;
+    --brand-border:  #f4c4c1;
+
+    --good:          #067647;
+    --good-tint:     #ecfdf3;
+    --good-border:   #abefc6;
+
+    --warn:          #b54708;
+    --warn-tint:     #fffaeb;
+    --warn-border:   #fedf89;
+
+    --bad:           #b42318;
+    --bad-tint:      #fef3f2;
+    --bad-border:    #fecdca;
+
+    --ink:           #1d2939;
+
+    --radius:        8px;
+    --radius-sm:     6px;
+    --shadow-xs:     0 1px 2px rgba(16, 24, 40, 0.05);
+    --shadow-sm:     0 1px 3px rgba(16, 24, 40, 0.10), 0 1px 2px rgba(16, 24, 40, 0.06);
+    --shadow-lg:     0 20px 24px -4px rgba(16, 24, 40, 0.08), 0 8px 8px -4px rgba(16, 24, 40, 0.03);
+
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --serif: 'Newsreader', Georgia, serif;
+
+    /* Kept so older markup in the file still resolves. */
+    --paper: var(--bg);
+    --card: var(--surface);
+    --line: var(--border);
+    --line-soft: var(--surface-3);
+    --muted: var(--text-3);
+    --red-brand: var(--brand);
+    --green: var(--good);
+    --red: var(--bad);
+    --amber: var(--warn);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12141a;         --surface: #1a1d24;    --surface-2: #21252e;
+      --surface-3: #282d37;  --border: #2f353f;     --border-strong: #3d444f;
+      --text: #f0f2f5;       --text-2: #b0b7c3;     --text-3: #8c95a3;
+      --brand: #e07a74;      --brand-dark: #c9635d; --brand-tint: #2a1a19;
+      --brand-border: #4d2c2a;
+      --good: #6ce9a6;  --good-tint: #132b20;  --good-border: #24503a;
+      --warn: #fdb022;  --warn-tint: #2b2113;  --warn-border: #54401c;
+      --bad:  #fda29b;  --bad-tint:  #2b1917;  --bad-border:  #542b27;
+      --ink: #f0f2f5;
+      --shadow-xs: 0 1px 2px rgba(0,0,0,.3);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+      --shadow-lg: 0 20px 24px -4px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12141a; --surface: #1a1d24; --surface-2: #21252e; --surface-3: #282d37;
+    --border: #2f353f; --border-strong: #3d444f;
+    --text: #f0f2f5; --text-2: #b0b7c3; --text-3: #8c95a3;
+    --brand: #e07a74; --brand-dark: #c9635d; --brand-tint: #2a1a19;
+    --brand-border: #4d2c2a;
+    --good: #6ce9a6; --good-tint: #132b20; --good-border: #24503a;
+    --warn: #fdb022; --warn-tint: #2b2113; --warn-border: #54401c;
+    --bad: #fda29b; --bad-tint: #2b1917; --bad-border: #542b27;
+    --ink: #f0f2f5;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+    font-feature-settings: 'cv05' 1;
+  }
+
+  button, input, select, textarea { font: inherit; color: inherit; }
+
+  /* ---------------- shell ---------------- */
+  .shell { display: grid; grid-template-columns: 244px 1fr; min-height: 100vh; }
+  @media (max-width: 900px) { .shell { grid-template-columns: 1fr; } }
+
+  .side {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0 24px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand { padding: 0 20px 24px; }
+  .brand img.logo { display: block; width: 100%; max-width: 156px; }
+  .brand span {
+    display: block; margin-top: 10px;
+    font-size: 12px; color: var(--text-3);
+  }
+
+  .nav { display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
+  .nav button {
+    display: block; width: 100%; text-align: left;
+    background: none; border: 0; border-radius: var(--radius-sm);
+    padding: 8px 12px; color: var(--text-2); cursor: pointer;
+    font-size: 14px; font-weight: 450;
+    transition: background-color .12s ease, color .12s ease;
+  }
+  .nav button:hover { background: var(--surface-3); color: var(--text); }
+  .nav button.on {
+    background: var(--brand-tint); color: var(--brand-dark); font-weight: 600;
+  }
+  .nav button:focus-visible {
+    outline: 2px solid var(--brand); outline-offset: -1px;
+  }
+
+  .whoami {
+    margin-top: auto; padding: 20px 20px 0;
+    border-top: 1px solid var(--border); margin-inline: 20px; padding-inline: 0;
+    font-size: 12px; color: var(--text-3);
+  }
+  .whoami select {
+    width: 100%; margin-top: 8px;
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+    padding: 7px 10px; font-size: 13px;
+  }
+
+  @media (max-width: 900px) {
+    .side { padding: 16px 0 8px; }
+    .brand { padding: 0 16px 14px; }
+    .brand img.logo { max-width: 124px; }
+    .nav {
+      flex-direction: row; overflow-x: auto; gap: 4px;
+      padding: 0 12px 4px; scrollbar-width: none;
+    }
+    .nav::-webkit-scrollbar { display: none; }
+    .nav button { white-space: nowrap; width: auto; }
+    .whoami {
+      margin: 12px 16px 0; padding-top: 12px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .whoami select { margin-top: 0; max-width: 200px; }
+  }
+
+  main {
+    padding: 28px 32px 80px;
+    min-width: 0;
+    max-width: 1240px;
+  }
+  @media (max-width: 620px) { main { padding: 20px 16px 64px; } }
+
+  .head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 24px;
+  }
+  h1 {
+    font-size: 24px; font-weight: 600; margin: 0;
+    letter-spacing: -0.02em; color: var(--text);
+  }
+  .head p { margin: 4px 0 0; color: var(--text-3); font-size: 14px; }
+  .head > div:last-child { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ---------------- buttons ---------------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px; white-space: nowrap;
+    background: var(--brand); border: 1px solid var(--brand);
+    color: #fff; font-size: 14px; font-weight: 500;
+    padding: 8px 14px; border-radius: var(--radius-sm);
+    cursor: pointer; box-shadow: var(--shadow-xs);
+    transition: background-color .12s ease, border-color .12s ease;
+  }
+  .btn:hover { background: var(--brand-dark); border-color: var(--brand-dark); }
+  .btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .btn:disabled {
+    background: var(--surface-3); border-color: var(--border);
+    color: var(--text-3); cursor: not-allowed; box-shadow: none;
+  }
+
+  .btn.ghost {
+    background: var(--surface); color: var(--text);
+    border-color: var(--border-strong); font-weight: 500;
+  }
+  .btn.ghost:hover { background: var(--surface-2); border-color: var(--border-strong); }
+
+  .btn.green { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .btn.green:hover { background: #101828; border-color: #101828; }
+
+  .btn.small { padding: 5px 10px; font-size: 13px; box-shadow: none; }
+
+  /* A name in a table is a link, not a button. */
+  .btn.ghost.small[data-student],
+  .btn.ghost.small[data-editteacher] {
+    background: none; border: 0; padding: 0;
+    color: var(--text); font-weight: 500;
+    text-decoration: underline; text-decoration-color: var(--border-strong);
+    text-underline-offset: 3px; box-shadow: none;
+  }
+  .btn.ghost.small[data-student]:hover {
+    background: none; color: var(--brand-dark);
+    text-decoration-color: var(--brand);
+  }
+
+  /* ---------------- cards ---------------- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-xs);
+    padding: 20px 22px;
+    overflow: hidden;
+  }
+  .card h2 {
+    margin: 0 0 16px; font-size: 15px; font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .card > .scroll:first-child,
+  .card[style*="padding:0"] > .scroll { border-radius: var(--radius); }
+
+  /* ---------------- statistics ---------------- */
+  .stats {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    background: none; border: 0;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-xs);
+    padding: 16px 18px;
+  }
+  .stat .k {
+    font-size: 12px; font-weight: 500; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .stat .v {
+    font-family: var(--sans); font-size: 26px; font-weight: 600;
+    letter-spacing: -0.02em; margin-top: 6px; color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .n { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
+
+  /* ---------------- tables ---------------- */
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    font-size: 14px; font-variant-numeric: tabular-nums;
+  }
+  th {
+    text-align: left; white-space: nowrap;
+    font-size: 11.5px; font-weight: 600; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 10px 14px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  thead th:first-child { border-top-left-radius: var(--radius); }
+  thead th:last-child { border-top-right-radius: var(--radius); }
+  td {
+    padding: 12px 14px; vertical-align: middle;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr { transition: background-color .1s ease; }
+  tbody tr:hover td { background: var(--surface-2); }
+  td.num, th.num { text-align: right; }
+
+  /* Bare tables inside cards (key/value lists) need no header chrome. */
+  .card table th { background: none; }
+
+  /* ---------------- tags ---------------- */
+  .tag {
+    display: inline-flex; align-items: center;
+    padding: 2px 9px; border-radius: 16px;
+    font-size: 12px; font-weight: 500; white-space: nowrap;
+    background: var(--surface-3); color: var(--text-2);
+    border: 1px solid transparent;
+  }
+  .tag.ok   { background: var(--good-tint); color: var(--good); border-color: var(--good-border); }
+  .tag.bad  { background: var(--bad-tint);  color: var(--bad);  border-color: var(--bad-border); }
+  .tag.warn { background: var(--warn-tint); color: var(--warn); border-color: var(--warn-border); }
+
+  /* ---------------- forms ---------------- */
+  label.f { display: block; margin-bottom: 16px; }
+  label.f span {
+    display: block; font-size: 13px; font-weight: 500;
+    color: var(--text-2); margin-bottom: 6px;
+  }
+
+  input[type=text], input[type=number], input[type=date], select, textarea {
+    width: 100%; padding: 9px 12px;
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-xs);
+    transition: border-color .12s ease, box-shadow .12s ease;
+  }
+  input:hover, select:hover, textarea:hover { border-color: var(--text-3); }
+  input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: none; border-color: var(--brand);
+    box-shadow: 0 0 0 3px var(--brand-tint);
+  }
+  input[readonly] {
+    background: var(--surface-2); color: var(--text-3);
+    cursor: default; box-shadow: none;
+  }
+  input[readonly]:hover { border-color: var(--border-strong); }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; gap: 0; } }
+
+  .check {
+    display: flex; align-items: center; gap: 9px;
+    margin-bottom: 14px; font-size: 14px; color: var(--text);
+  }
+  .check input { width: auto; box-shadow: none; }
+  input[type=checkbox] { accent-color: var(--brand); width: 16px; height: 16px; }
+
+  /* Report tabs: one row, only the selected one filled. */
+  #report-tabs {
+    gap: 4px; padding: 3px; background: var(--surface-3);
+    border-radius: var(--radius); display: inline-flex;
+    flex-wrap: wrap; margin-bottom: 20px;
+  }
+  #report-tabs .btn {
+    background: none; border-color: transparent; box-shadow: none;
+    color: var(--text-2); font-weight: 500;
+  }
+  #report-tabs .btn:hover { background: rgba(255,255,255,.6); color: var(--text); }
+  #report-tabs .btn.ghost { background: none; border-color: transparent; }
+  #report-tabs .btn:not(.ghost) {
+    background: var(--surface); color: var(--text);
+    box-shadow: var(--shadow-xs); font-weight: 600;
+  }
+
+  /* ---------------- filter bar ---------------- */
+  .bar {
+    display: flex; gap: 8px; align-items: center;
+    flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .bar input[type=text] { max-width: 280px; }
+  .bar select, .bar input[type=date] { width: auto; min-width: 150px; }
+
+  /* ---------------- empty state ---------------- */
+  .empty {
+    padding: 44px 24px; text-align: center;
+    color: var(--text-3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .empty p { margin: 0 0 14px; }
+  .empty p:last-child { margin-bottom: 0; }
+
+  /* ---------------- modal ---------------- */
+  .veil {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(16, 24, 40, 0.5);
+    backdrop-filter: blur(3px);
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .veil.on { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    width: 100%; max-width: 480px;
+    max-height: 88vh; overflow-y: auto;
+    padding: 24px 26px;
+  }
+  .modal h3 {
+    font-size: 18px; font-weight: 600; margin: 0 0 18px;
+    letter-spacing: -0.01em;
+  }
+  .modal h4 {
+    font-size: 11.5px !important; font-weight: 600; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  }
+  .modal table { font-size: 13.5px; }
+  .modal td { padding: 8px 10px; }
+  .modal th { padding: 8px 10px; }
+  .modal .foot {
+    display: flex; justify-content: flex-end; gap: 8px;
+    margin-top: 22px; padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ---------------- toast ---------------- */
+  #toast {
+    position: fixed; left: 50%; bottom: 24px; z-index: 60;
+    transform: translate(-50%, 100px);
+    background: var(--ink); color: #fff;
+    padding: 11px 18px; border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    font-size: 13.5px; font-weight: 450;
+    max-width: 90vw;
+    transition: transform .22s cubic-bezier(.2,.8,.2,1);
+  }
+  #toast.on { transform: translate(-50%, 0); }
+  #toast.bad { background: var(--bad); }
+
+  /* ---------------- attendance buttons ---------------- */
+  .att { display: inline-flex; gap: 4px; }
+  .att button {
+    width: 34px; height: 30px; padding: 0;
+    background: var(--surface); color: var(--text-2);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px; font-weight: 600; cursor: pointer;
+    transition: all .1s ease;
+  }
+  .att button:hover:not(:disabled) { background: var(--surface-2); }
+  .att button:disabled { opacity: .5; cursor: not-allowed; }
+  .att button.on { color: #fff; }
+  .att button.on[data-s="P"] { background: var(--good); border-color: var(--good); }
+  .att button.on[data-s="A"] { background: var(--bad);  border-color: var(--bad); }
+  .att button.on[data-s="L"] { background: var(--warn); border-color: var(--warn); }
+  .att button.on[data-s="E"] { background: var(--text-3); border-color: var(--text-3); }
+
+  /* ---------------- misc ---------------- */
+  input.mark {
+    width: 72px; text-align: right; padding: 6px 9px;
+    font-variant-numeric: tabular-nums;
+  }
+  .receipt {
+    font-variant-numeric: tabular-nums;
+    font-size: 13px; color: var(--text-2);
+  }
+  .hint { font-size: 13px; color: var(--text-3); margin: 8px 0 0; }
+  .hint b { color: var(--text-2); }
+
+  .banner {
+    background: var(--brand-tint);
+    color: var(--brand-dark);
+    border-bottom: 1px solid var(--brand-border);
+    font-size: 13px; padding: 9px 20px; text-align: center;
+  }
+  .banner {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+  }
+  .banner b { font-weight: 600; }
+  .banner #banner-close {
+    background: none; border: 0; cursor: pointer;
+    color: inherit; opacity: .65; font-size: 19px; line-height: 1;
+    padding: 0 2px; border-radius: 4px;
+  }
+  .banner #banner-close:hover { opacity: 1; }
+  .banner #banner-close:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+
+  .hidden { display: none !important; }
+  .boot { padding: 80px 24px; text-align: center; color: var(--text-3); }
+  .boot code {
+    background: var(--surface-3); padding: 1px 5px;
+    border-radius: 4px; font-size: 13px;
+  }
+
+  /* ---------------- print ---------------- */
+  @media print {
+    .side, .banner, .bar, #toast, .veil, .head > div:last-child { display: none !important; }
+    .shell { display: block; }
+    main { padding: 0; max-width: none; }
+    body { background: #fff; font-size: 11.5px; }
+    .card, .stat {
+      border-color: #d0d5dd; box-shadow: none;
+      page-break-inside: avoid;
+    }
+    th { background: #f2f4f7 !important; }
+    tbody tr:hover td { background: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="boot" class="boot">Opening the portal…</div>
+
+<div id="app" class="hidden">
+  <div class="banner" id="banner"></div>
+  <div class="shell">
+    <nav class="side">
+      <div class="brand">
+        <img class="logo" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCABwAMgDASIAAhEBAxEB/8QAHAAAAQQDAQAAAAAAAAAAAAAABgADBQcCBAgB/8QAQxAAAQMDAgMFBAgEBAQHAAAAAQIDBAAFEQYhBxIxExRBUWEIInGBMkJTkZKhscEVI1LRFiRiojNjcvAXGCU0RMLh/8QAGgEBAAIDAQAAAAAAAAAAAAAAAAEEAgMFBv/EADIRAAICAgAEAwUGBwAAAAAAAAABAgMEEQUSITEGE0FRYXGBsRQikaHR8BUWIyQyUsH/2gAMAwEAAhEDEQA/AOqaVKlQCpUqVAKlSoP1nxZ0joXLd2uiDK3xEjjtXvmkfR+eKAMK0rtfLZYoxk3S4RYTI+u+4ED5Z61zHqv2mdT6hWqHpmGm0tLJSlaR20lQ/RJ+APXrQarS+o7y/wDxDVNy/hzSsLVJu0jLhSfFKCeY/AAVOiDo28e0VoW2B1MaZJuTqDgJjMnlWfRSsCgy5e1Vh3/03TWWgN1SpPKrPwSD+tBMvhpp21WZm7G8yr23JdbYiswkpBfcUdkg+H7Ub6G0bp15t0S9Hrt06GoIWmYS7z5GeYKOyvKp0AQne0Nr+5uq7k9EjJXkpbjRecpHlk5J+NajXFHixMz3efdXCo4/lwk4+XuUfTm7hetTzNPaWkxLDHtrKFypbMdJUt1W4bG2wxuaHb3xH1NbdOpL7xavFmuyYswtjDclBSVAqHkrHhUpAi3NUcbH0gdtqEA+KY6U/wD1r0aj44xQFdtqBQyB7zCFftR3pDXX+J+IBMWe+qBIsqHkxS5lLToXhYx/V4UR8R9Tu6a0dcZ7DhalLQGY6ubBDizypPy3PyoCpE8buLNnWUzWlOY93lk2zA2O+6QN6fje0/rOK6e9wLS8AN21MrbI/wB1EVq4iXu08Ppbcw991JBmi2JDpCud1Z/lqP8AUOU/PFSlksWqY97TF1Wbdf7XKjlx6UqMhJiu9eTpkp9adARlt9q8FttNx0wVOk4UqLKGMeYCh+9GFj9pHQ91UES3plrcJx/mWcp+PMnIHzqvdMx9B8RdUXi0DS0SOxEBXGksKU2p9IVyqJA2G+4x4UIqsPD69XTukeRfbD2j6o0eS8gPRXFBWMBXhnyppDZ1pbNQWi8p5rbdIUwf8h5K/wBDUhXIN14K6psEpxViuEa4vsHm5Ij3ZSUeIPJnOfhW9p3jtrrQsxNvv7LtwZbVyrjz0lDyQPBLn981HKNnWFKq70Vx10jrJaIxkKtc9RwI03Cec/6VdD+RqxAQRkb1iSKlSpUAqVKlQCpUqVAKo7UGorXpa0v3a8TGokNhOVuLP3ADxJ8AKj9da4tPD7Tz96u7pDaPdaZSRzvuHohI8z+Qya5CvmoNXcd9WhKlcrKVZZjhR7vCbz9I+avXqfSpSAW8RPaS1BquQq1aQaftcJw8iXEDMt/fwx9AHyG/rUFpnhUJNzjI1ddEw5M1JdbgheZD3mVKPQ+m5NENu0xbdL6Ll3rSV0gyLnEWe8TpCRk8ivfaGfoZxgeJqE4l36FqaJpnUsTvI7RLzHIyrDrL4wQPiFH5isiCXhXqz6L1BddJzIES0tuhSYVyYT/MSlafd5lHJ6497wI8qjdNXKPebzpmbe0R5zrbztmlLf8A5gzuppePHOTv41Hi43C/6t0/E1RYFrmKaESX2iCDJZWcJWQOhTnOaMGuBMiM7Pix752VueW09GVy5daWlR6+HQkZFNgbu9nt9ivmqbW+mUixIZYuAbgq/mRHiRlSR1SBkn4Vtaem3l/UCtP6Z1q/cob8PtzMeaDph4Oyd/FXSjjSehbfphEkl164zJoAlSph51PDyP8Ap9Km7XYLRY0LRa7bGhhw5X2KAOb402hoBBYtTaCusi8QmF6obmMpbnJBDbxcSTyuAdMYOKh5mlb2q0v6gu/crfJnXpi4PNSXQlMdlGdlE9Tg9KuVCUpQTkbHIztVF8T75ARqvsNWQpU5hPKY8FhzkTHZJ/4hP1nVYzjwFEwYaevmitJcS5t1hXlk2l9paEIbaWezWsgkA/0gjr61YGs9P/8AiiLG3BnRndPJdW9LejvDtFHGEhP3nr50E3OForijaJ0bR1pES+Q2kOMpKA0XkjYoAzg+RPnio7Slr1fwl1LARKiPrts7kExLI52QknG5HRSc+VGCcncI7zZp05vTSC/BxHmsd6eBUqS0vPIT1wQSM1san1HxPu0aU4xpt+2RFM90MZKQ44644cFYx0CRnerlCMnoPU4rIKyoHJGKjYOeRHu/CO92SReI0NlhFukxUvRVKUHVYKh2mRsrmKRW4t62SuEWnrA09Geu9wmtLbbZUFracU7zLUQOmE9avSRGjTW1NyWWX0nYh1IUD8jUEzoTTcCU7Ng2eHEmuNrbEhlsBSeYYJHkd6naGilmpdqv2p7xd79b7+ETJvd4N1tvMkNBHuBOB8jmihq5sai16dBSm495s1viKaffmICpCnUDKlBzqN8D5VJ2jQ+uNEJEax6ghTrUkKKIctvlUCckYPmT41Xk/SGpdLznXmlPRHFWlT12uBBIQVqJWlKunN9FO3nUgevPDCwXuTcP8F3tlx6G72bkGWcJKznAbcOx6HArHSnFzW3Cu4i03lt+VEbwFQZpPMhPm2vw/MVvKgsaD0NpJyXH55ky6N3J5ptOXFISCQMeOAQPiaOkWiVxMgSVal02zbISwDBW45/m0f6j5eeKMFo6I17ZNfWlNws8kKI2ejr2dYV5KH79DRFXGl4smp+CepYtyt0w8iiSzKQPcdTndtxPQ+o+Yrp7hnxDg8R9OIucZIYlNnspcbOSy5j80nqD/asGvYSFtKlSqAKsJEhqKw5IfcS000krWtRwEpAyST5YrOqZ9pviH/hfSSdPROQzr4lbSirfs442Wfic8o+dAUZxD1lcuNXEFEaEtz+Hh0sW9o/QbbH0nVDzVjmPpgVcujdJwtI2hqBBSFY9514j33VnqT+w8KrrglYotns0jU9wUGu8uCOytY2CM4z6cytvlVvNEtgKSeYYByPGp2CpuImjLfZr8zfpDcpzT8uQDc4zCylKF+DpA8M9R/ep9nhBB/xdb75a5KItpaKZPc0g4LgHulIOwBGM/CrBWy3MbWh1AcSoe8hacg+mKcbSW8bDy602QOBkdsl5SElYBSFlIKgPLNbGFpAJVgeO1NoKc8pGQB0B606lHMnJHTxJqCT0F0b7HP508nK/AA4wcVjgJxkYOfOvQQFY8AKAzCMDrtQVrbSGmdYy5DM0K/jESGXEdk5yL5DzFJI6KTkH4UajHmeoHSq74rwmYkuw6hZkORZca4MxSpCsdo04rdJ+H7mpRDKb4b2eBcLvLm3edJhQLVGVMfWwopWoAgcnMOmSfjVj6q1jdtS3fTFk0pNuMESm0uSIvKUvNoyOVTh8uQZ//aeb1Xaobd9Q7pq0qeXf2rapDaSlMkFWQtfqNztsTU1wvQ7f9Tak1bNKBJEhVsYS2kAIaQf1OwzWRBaISUpGCVADG9NhKskkiskdPp433rElXKcrIyeprAyPUox1VikQCrZZNeKPMQO0x8PGvVADACyKA8UEKHKrBFa86JGuMZ2HLYQ/HdHKttxPMlQ9RWwWwU5B3rLZIyeuKbAKjRcZWrU6kkyVvuMMCPFjrSOzjDoVJ+NEbg5hudvPzrPKOTqPmK8WlXLupOPhTY0Q2qNPQNT2mRa56Atl0ZCgN2142UPUVQmg9Sz+DvEdTFwJ7opYjTkjOFtE5S6B44zzD0yK6MdJORjw8Kpf2hNPN9hAv7TfK4lXdn1eYOSj9D99Sgzp9txDzaXG1BaFgKSoHIIPQ0qAuBWojqPhpanXHC4/ECobqj1y2cD/AG8tKoYQf1xl7Tl4cunFaVFJJRbozMZAz4lPOT96/wAq7Nrir2jISonF29OOYQHmmH2859/+WkbfNJ+6pQJq1cQnIenY1ij6JvLiGoyWD7mAo43I28Sc1sL45JsSUW+VpWfGdabSA08+OblxtnIrC2T9V3GOHVcTbHGBbSEoQlORt0OehoJvbUqVq11N1vUa/L7un/NN4KCPBO3lmsbJ8kHJm7Hpd1sa09bDpPtExGwSNPyeY+AkJA/SvXfaK505Rpn8UofsKBv4bCBwmK0B0Pu06iBEAHLGayOvu1R+3x9EehXhm3tzr8GEjntD3cHDVht6T5rdWrbwpN+0PfcDtLNaljYbLWMfnVaXO4Fuc6lplpCW1YALYwSPOimEw0/GaeVEaBWhKikI2Fbrcjy4qTj3KWHwhZNk6oz6x9wQu+0LqZaglu3WlvB8QpR/WsU+0DqvmwqPa8HwDR2/Oh6fKiQEoHdm1vOkBCQnx9fSpFuOlIHM20DgfUH3VpeclFS5Xpl+Hhpym61Z1XfoSJ9oHVxPuxbWnH/KV/eoq56+1LxEuFstVwEbsXJ7S0Nx2uU8/MB1Poaee5W2XFpQlRCCQlKQN/KhC26ik2u9tXQp7xIY5lNhRwErKSkKHwJz8q342T529Lsc7inClgqKc9t+4Jlai7vrRwtlL0NN/VMBUNnFJykZ/WsLBxJ1RplM2PaZzbTcqQuQ4kxw5hauuCahk2xadPtyclTpV2pVnJwf36Go1Et1t/CCpKirmPKdic1shZzptehWvxfJ5I2eqT6e8O3eMfENKiE3hQ8PcjJxn7qzb4x8Ri3ym5c3qYqSf0rBkurSjtRyrKQop9fGm5s9NvkMB7AbeJSQDukjofhVCPEHKXKonoJ+Gqqq/MssaXwMlcWuIqyc3V4HxxGT/anV8WeIT8dltNwdQpsq5nEMDmcz/Vt4dBinudOCRzKJ/wC9qDr5cpybm4gvPNJbV7qM4GP3rZj5juk4pJFXiXBacGCnObe3rsEh19xEeSSb1cgM7cqAM/lTZ1zxBUAlV9unxCRv+VPWh9x+AyuTntCOp6kedbfOAjAGRjNapcQcZOOuxfp8MU2VqxTemvYR69b6/WORV7umPMACmDq7X5SB/GrsfQr3FS6VHY7AeNYrASoZzj49afxBtdjZ/KtP+7N3R+qYkyBJVqvXd9t81p3lSy0vOU469D45rU1vdNLz7I+3B1tfrpJBSpqLLyW1kHck4HhnFY6e1PP0k5PYY05bbmmQ92yXZQBKdsco9PGtTWfEC63ezrtsqxWe3tSFA88dH8zCTnANdONsJJafU8nfgX0uTcHyr10/qW/7J8hxelr0wo+43OSoDyJbGf0pVu+yza1xNCTJy0kd9nKUk/1JSlKf15qVZS7lKPYuaubfa20ksu2jVTDRKeUwZKh4b8zZP+4V0lURq3TMHWOnZ1iuKcx5jZQSOqD1SoeoOD8qJhnCtltdsuEAFxpRebVhePjkf9+lS8W2xYZKmWQ2TkYrWv1kvHC7VUqzXNAzgBZSMpfaJ91aPu28jkVIsvsykJebc7RCtwoeNc3LhOL79Ge14Fdj2wXRKcf3scTkHPKFDxpqY8qMy48llS+TwGwA8zT4HkdjURIlm4yy20SIkf33nCMhWB09aqUw5mt9js52Q66mov777fr8DWs+nr1rW7pj2yEqS+AFLURypSB9ZR8BW4+m/W24y7dzR5a4rq2lLbxyEpONj5Z6VpW12SzzSBMmxEu/QUwvlK0dN/QYxW3pt1Km5DJKg4HMqJOVKHTeulkqMYuXLtI8bwmNk8lQc3He+u++hy22h5b5m3L3pBUVBGc8vqanE5VhRJIGfGmknB8wD5VqypM92dEt1t92TJUEJJxuScAelclqeTNLsezbx+G0Ob+ftb+JJgAIz9Xrk7YoFvaEouz/AGRShHMDhPTNXraPZ7Q82h2/32W8+cczcUAJA8snr8cVKyvZz0lKa/y0u6MuA7KDoXj5Eb11cXF8nbcjyHF+MxzYKEYa0+/cpgZTplaQnlAbCc5zvneoK0LbRc21uBIQF5KlDaj9PC0ROJUXRkq4uqhyE9sJDYCVqQUlQ26Z2wasiRwe4aaejNu3Z7skLVyBcqYUhSvLbrW6GPyxkm+5TyeI+bOqyMesEvnoq1mZFdI5HmlqO2Ob968mw2Z7DjMkZyDykfV9Qasy+cGOHzCYyl3hdqTI91kqlpIePUY5uvUdPOq31JpSToLVbdlfmmUw8hLrSumxyBn1GK50+Huv79cux6LF8SQyZKm+tal0/EiIV4lx3Gba7DUuSpYZbUVcqVknCck7UXPcJNdXCU1JXbrcyGCQkLlJUF/dmoiTFRLQWnW0qb2OD5+YqX0hxeXouyOWVdnlzltPOqQ+H8Jwr474FMdxs3KuPX1NXGvtePGMHZuD7fIj7vbrppi8i03lllt5xoOtOMqyhwHwB9MH7qx5l/0jbehvvlwWzAny5z0phhxaQhxRUWsnJA9D1oiSsOJC0q5kncEeRqvl1KEk1+2djguZbdU43f5Lr8mujPRvufu9a8VnJGAd9h5V6OhwnOPE14R7wwTzeJNV0vYdljWcZBBz1NCktMjU19Zg25hTzzqxHYbH11E7fn+Qrd1BesBUOKrOdlrHl5Cr09nzg+uyoa1dfWCma6g9yjuJ95lBH/EV/qI6DwHxrs4OPyLzJHhvEXFI2/21T7dy2tEaab0fpO2WNshXc2EoWofXX1UfmomlU5Sq6eXFSpUqAC+KHC+1cTLIYkoJjz2QVRJgTlTSvI+aT4iuP77p3UPDW9uW28Q1snJwSMtPgfWQrx/7zXelRGqNJ2bWVqctd7hNy4y98HZSD5pUNwfUVDSktSNlVs6pKdb0zjGDcI85HOw4Ob+g9Qaam25SoC40IIb51e9v4dTR9xG9mu96cccuWklu3SEnKuwH/uWR6f1j4b1VrN+mQHixcY7hdbOFJWnkcB9QaozxJRe6+p6nH47TfDy8pafbf1GENzXZS4nOjmYR7xP1QBsK2dLsOLkuSQsYT7ihjdWd6fsD8Q9s44+kPOryoE42rKwuMsOy2ArmWXDynzAz41ldbJxmtdv2zDh+JWrabObe2/Xtrtsn053G3ka0rVdY1s13DnyinsoP81RPjyoUoD4k4FbrWcdVUtE6Vh6z187b53P3VpCnlpTsV8gGB8CTvVbh6/qNnT8SzaxYxXqwoe11db7ZLdb55uy7wi4OoeYtbgRIcCmudsJxtgcwHyqQtF+umpZsOBctauWZmJbGJaXkYbMx0n3ysq68hSQR6Gi17hTolyf3juy4bu3uRpRZCSBjIAOQcbVOf4D0tLt8S3O2iNKjw8qZS575Rk5J5s5OTua7O0eB0V7xDiPSOJ1kfhTnorr1tcUiQ1jn2Q4UkHpv0+dQTNrtcjhhatV6gkOzURI0mIzBcWT20lbh5V5znIJJPoKMdax0jjBpBKdkLYUyUAge7746fOia46O0NC0vHs93ZYj2qK4p1tMiRylK1Zyc5yc5NOxLBhvh1b5GirVJu0Vd7udutZYZgJkDkLisqwN/pDm/KgLXjsd61aHnxJbkwIiGO4t36fMhwcyVeoJI+QqxnoXCWbZkWSNfokOOw8ZKVMTFIcDhGCrmO5yNsUIcYrVp6yaa05D0+8w5Haedwtt4OKOQFEqIPUnz9Kxn1TRsofLYpL0/VEFJW4hpfZAFQScDzOKDYoedZLTTbocjhS1BR2z1Pwo0BQ2glRB8d6g7UkqnXVsqSQ4Tvn41xcOx1xm9ew9/xnGjkWUxctb39N/8MbIyZUOUw4rmaXjBHT1xUxGhohx0tIyUIHirrURarhHiW1CH3Al1tSgpAG/WtWfqdw5biIDSTtzHdR/tWy2i66xpdjRi5+HhY0JTluWvr10EMyWxCa5n3EtDfAPU/AeNDU69Sbq8mBBZc/nEIQlG63CfAAb0U6N4Law146iS7HXbrevcy5gIyP8AQjqfyFdHaA4Q6b0A2HIkfvdwI96dIALnwT4JHwq3ThRr6y6s4XEPEF2QnCtcsfzK64OcADbnmdQ6vjpVJQoORrercNnwW55nyT0HjV+UqVW2zgJCpUqVQBUqa73H+3a/GKXe4/27X4xQDtKmu9x/t2vxil3uP9u1+MUA7Q5qfh3pbWGV3qyxJT3IUJfKMOJyPBQ328Knu9x/t2vxil3uP9u1+MUBzfqn2TZLKXXtMXtL4zlMWcnlUR5donbPxFVbdeGuvtHuK7zYri02nJLrLfat7dTlOdq7i73H+3a/GKXe4/27X4xUvr3MoTlB80XpnBLWqJTai0+y0VJ2UBlKs+tazV0UZ65SJT0JSycrbUcp9Nq7cvmhtE6kUpd1stplOKOVOKQkLJ8+YYOaAbt7NGgJyuaHMnW45yUtSUrSfkoGtcKa4tuK1stXcRyLoxha+ZL2nODP8OkqKn7tILp3KlEj963okkQXO1t+pJUZ1JyFoeIq2rl7KUFTmbbrHkRj6MllKiPmkiod/wBle8JcPYaqsziB0K0qST8cE1Hkv0kbFn1KPLKlP8f1ZX1w1XqJ+8w7i9eu9TIaAmPKCk5SBnGfvrXmuC7Pd6vF8MiQr6SlKKyfmdqsT/yt6iKt9S2ID4rrfi+ytNUhJlawtyFeKWmSofeVD9KzcG1rmNFeRVGXN5afx3r6rZVS06ebSEhTzhI+rUdMdt//AMIPgZye0OfyroGF7LFjQcztWyXT5MNtoA+ZJqftvs3cPoagqVInT8blL0sJSfkkCsYVqL6tszuzfMWlXGPwXX8zmiVqOVLjGIhtCUqTy+6CVKrf01obV+pnOys9luDqVjmK1ILbZHmVKwK7DsOitGaZIVaLRa4jgHKHEpSV4/6jk0QCVGAwH2QP+sVlCEILUUa7su+6SlZLbRzdpn2Xr5NWlzUl1jwGvFqL/NcPzOEj86t/SfBjRmkVofi2tMuWnpJmHtVg+mdh8hRn3uP9u1+MUu9x/t2vxistlcdAxSprvcf7dr8Ypd7j/btfjFQB2lTXe4/27X4xS73H+3a/GKAdpU13uP8AbtfjFKgP/9k=" alt="Hands-On Academy crest">
+        <span id="brand-year">—</span>
+      </div>
+      <div class="nav" id="nav"></div>
+      <div class="whoami">
+        Viewing as
+        <select id="role">
+          <option value="admin">School administrator</option>
+          <option value="principal">Principal</option>
+          <option value="bursar">Accountant / bursar</option>
+          <option value="storekeeper">Store keeper</option>
+          <option value="teacher">Teacher</option>
+          <option value="parent">Parent</option>
+        </select>
+      </div>
+    </nav>
+    <main id="view"></main>
+  </div>
+</div>
+
+<div class="veil" id="veil"><div class="modal" id="modal"></div></div>
+<div id="toast"></div>
+
+<script>
+/* =====================================================================
+   Hands-On Academy — administration portal (working prototype)
+
+   Data lives in the artifact's own store, so it survives reloads and is
+   shared with anyone you share this page with. Aggregate documents are
+   used for scores and attendance (one per class/subject/term and one per
+   class/day) to stay well inside the 5,000-document cap.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------
+   Hands-On Academy fee schedule, 2026/2027.
+   Transcribed from the school's published bill. `newOnly` items are
+   charged to new and re-registering students only — which is what
+   makes the bill's two Term 1 figures (New / Old) work.
+   --------------------------------------------------------------- */
+/* ---------------------------------------------------------------
+   Hands-On Academy staff, as given by the school.
+
+   `portalRole` is what account each person should be issued once real
+   logins exist — it is a note to whoever sets them up, not a live
+   permission. In the Laravel system this maps to the role assigned in
+   RolePermissionSeeder.
+   --------------------------------------------------------------- */
+const HOA_STAFF = [
+  { name: 'Horija Touray Dibba', role: 'Proprietress',
+    unit: 'Administration', portalRole: 'admin' },
+
+  { name: 'Fatou Touray',   role: 'Principal, Upper Basic School', unit: 'Leadership', portalRole: 'principal' },
+  { name: 'Habibou Nyassi', role: 'Head Master, Lower Basic School', unit: 'Leadership', portalRole: 'teacher' },
+  { name: 'Fabakary Cham',  role: 'ECD Head', unit: 'Leadership', portalRole: 'teacher' },
+  { name: 'Binta Saidy',    role: 'ECD Head', unit: 'Leadership', portalRole: 'teacher' },
+
+  { name: 'Lamin Camara',    role: 'Senior Teacher \u00b7 Mathematics',     unit: 'Departments', portalRole: 'teacher' },
+  { name: 'Fatoumatta Cham', role: 'Head of English Department',         unit: 'Departments', portalRole: 'teacher' },
+  { name: 'Fatima Kanuteh',  role: 'Head of French Department',          unit: 'Departments', portalRole: 'teacher' },
+  { name: 'Kutubo Ceesay',   role: 'Head of Islamic Studies Department', unit: 'Departments', portalRole: 'teacher' },
+  { name: 'Sarja Badjie',    role: 'Head of Technical Department',       unit: 'Departments', portalRole: 'teacher' },
+  { name: 'Abdoulie Bojang', role: 'Head of Accounts Department',        unit: 'Departments', portalRole: 'teacher' },
+  { name: 'Abdou Saye',      role: 'Head of Science Department',         unit: 'Departments', portalRole: 'teacher' },
+];
+
+const STAFF_UNITS = ['Administration', 'Leadership', 'Departments', 'Teaching staff'];
+
+const PORTAL_ROLE_LABEL = {
+  admin:       'School administrator',
+  principal:   'Principal',
+  bursar:      'Accounts',
+  storekeeper: 'Store keeper',
+  teacher:     'Teacher',
+};
+
+/* ---------------------------------------------------------------
+   The school store — book shop and uniform shop.
+
+   Stock is an append-only ledger, exactly as money is. An item is
+   DEFINED once; every movement after that is a row. What is on the
+   shelf is computed from those rows and never stored, because a
+   stored quantity is a number somebody can quietly correct, and a
+   store whose figures can be quietly corrected is not a store.
+
+   That also makes the split the school asked for fall out naturally:
+     - the Proprietress defines items and records deliveries in
+     - the store keeper records issues out, and nothing else
+   Neither of them edits a balance, because there is no balance to edit.
+   --------------------------------------------------------------- */
+const STORE_CATEGORIES = ['Books', 'Uniform', 'Stationery', 'Equipment'];
+
+/* Fee lines that correspond to something physically handed over, and
+   what the store calls it. An item exists in the store only because the
+   school bills for it, and it may be issued only to the levels that pay
+   for it — that is where "supply by grade" comes from. */
+const STORE_FROM_FEES = {
+  'Book bill':    { label: 'Book pack',       category: 'Books' },
+  'Uniform':      { label: 'Uniform set',     category: 'Uniform' },
+  'Stationeries': { label: 'Stationery pack', category: 'Stationery' },
+  'Abacus':       { label: 'Abacus',          category: 'Equipment' },
+};
+
+/* Staff attendance codes. Kept separate from the pupil register: staff
+   are "on leave", not "excused", and the wording matters on a payroll
+   query. */
+const STAFF_CODES = [
+  { code: 'P', label: 'Present' },
+  { code: 'A', label: 'Absent' },
+  { code: 'L', label: 'Late' },
+  { code: 'V', label: 'On leave' },
+];
+const STAFF_CODE_LABEL = Object.fromEntries(STAFF_CODES.map((c) => [c.code, c.label]));
+
+const HOA_FEES = [
+  {
+    level: "ECD Daycare", seq: 1,
+    newOnly: ["Registration fee", "Uniform"],
+    terms: {
+      1: { "Registration fee": 500, "School fee": 4000, "Development fee": 500, "Stationeries": 500, "Uniform": 1500, "Exam fee": 500 },
+      2: { "School fee": 4000, "Development fee": 500, "Stationeries": 500, "Exam fee": 500 },
+      3: { "School fee": 4000, "Development fee": 500, "Stationeries": 500, "Exam fee": 500 },
+    },
+  },
+  {
+    level: "ECD Level 1", seq: 2,
+    newOnly: ["Registration fee", "Uniform"],
+    terms: {
+      1: { "Registration fee": 500, "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Stationeries": 500, "Uniform": 1500, "Exam fee": 500 },
+      2: { "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Stationeries": 500, "Exam fee": 500 },
+      3: { "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Stationeries": 500, "Exam fee": 500 },
+    },
+  },
+  {
+    level: "ECD Level 2", seq: 3,
+    newOnly: ["Registration fee", "Uniform"],
+    terms: {
+      1: { "Registration fee": 500, "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Stationeries": 500, "Uniform": 1500, "Exam fee": 500 },
+      2: { "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Stationeries": 500, "Exam fee": 500 },
+      3: { "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Stationeries": 500, "Exam fee": 500 },
+    },
+  },
+  {
+    level: "ECD Level 3", seq: 4,
+    newOnly: ["Registration fee", "Uniform"],
+    terms: {
+      1: { "Registration fee": 500, "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Stationeries": 500, "Uniform": 1500, "Exam fee": 500 },
+      2: { "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Stationeries": 500, "Exam fee": 500 },
+      3: { "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Stationeries": 500, "Exam fee": 500 },
+    },
+  },
+  {
+    level: "Grade 1-3", seq: 5,
+    newOnly: ["Registration fee", "Uniform"],
+    terms: {
+      1: { "Registration fee": 500, "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Book bill": 1700, "Uniform": 1600, "Portal fee": 500, "Abacus": 700, "Exam fee": 500 },
+      2: { "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Portal fee": 500, "Abacus": 700, "Exam fee": 500 },
+      3: { "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Portal fee": 500, "Abacus": 700, "Exam fee": 500 },
+    },
+  },
+  {
+    level: "Grade 4-6", seq: 6,
+    newOnly: ["Registration fee", "Uniform"],
+    terms: {
+      1: { "Registration fee": 500, "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Book bill": 1700, "Uniform": 1600, "Portal fee": 500, "Lab fee": 500, "Abacus": 700, "Exam fee": 500 },
+      2: { "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Portal fee": 500, "Lab fee": 500, "Abacus": 700, "Exam fee": 500 },
+      3: { "School fee": 4000, "Development fee": 500, "Extra curricular": 500, "Portal fee": 500, "Lab fee": 500, "Abacus": 700, "Exam fee": 500 },
+    },
+  },
+  {
+    level: "Grade 7", seq: 7,
+    newOnly: ["Registration fee", "Uniform", "Book bill"],
+    terms: {
+      1: { "Registration fee": 500, "School fee": 7000, "Development fee": 500, "Extra curricular": 500, "Book bill": 3500, "Uniform": 2500, "Portal fee": 500, "Lab fee": 500, "Exam fee": 500 },
+      2: { "School fee": 7000, "Development fee": 500, "Extra curricular": 500, "Portal fee": 500, "Lab fee": 500, "Exam fee": 500 },
+      3: { "School fee": 7000, "Development fee": 500, "Extra curricular": 500, "Portal fee": 500, "Lab fee": 500, "Exam fee": 500 },
+    },
+  },
+  {
+    level: "Grade 8", seq: 8,
+    newOnly: ["Registration fee", "Uniform", "Book bill"],
+    terms: {
+      1: { "Registration fee": 500, "School fee": 7000, "Development fee": 500, "Extra curricular": 500, "Book bill": 3500, "Uniform": 2500, "Portal fee": 500, "Practical fee": 1000, "Lab fee": 500, "Exam fee": 500 },
+      2: { "School fee": 7000, "Development fee": 500, "Extra curricular": 500, "Portal fee": 500, "Practical fee": 1000, "Lab fee": 500, "Exam fee": 500 },
+      3: { "School fee": 7000, "Development fee": 500, "Extra curricular": 500, "Portal fee": 500, "Practical fee": 1000, "Lab fee": 500, "Exam fee": 500 },
+    },
+  },
+  {
+    level: "Grade 9", seq: 9,
+    newOnly: [],
+    terms: {
+      1: { "School fee": 7000, "Development fee": 500, "External exam fee": 2500, "Portal fee": 250, "Practical fee": 1500, "Lab fee": 250, "Exam fee": 500 },
+      2: { "School fee": 7000, "Development fee": 500, "Portal fee": 500, "Practical fee": 1500, "Lab fee": 500, "Exam fee": 500 },
+      3: { "School fee": 7000, "Development fee": 500, "Portal fee": 500, "Practical fee": 1500, "Lab fee": 500, "Exam fee": 500 },
+    },
+  },
+];
+
+/* The bill states Level 1, Grade 1 and Grade 7 are always billed as new. */
+const HOA_ALWAYS_NEW = ['ECD Level 1', 'Grade 1', 'Grade 7'];
+
+/* The crest, for printed receipts and report cards. */
+const HOA_LOGO = 'data:image/jpeg;base64,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';
+
+const GRADE_BANDS = [
+  { min: 80, letter: 'A',  note: 'Excellent' },
+  { min: 70, letter: 'B',  note: 'Very good' },
+  { min: 60, letter: 'C',  note: 'Good' },
+  { min: 50, letter: 'D',  note: 'Satisfactory' },
+  { min: 40, letter: 'E',  note: 'Weak' },
+  { min: 0,  letter: 'F',  note: 'Fail' },
+];
+
+const WEIGHTS = { ca: 30, mid: 20, final: 50 };
+
+const ROLE_ALLOWS = {
+  admin:       ['dashboard','students','fees','store','grades','attendance','staffatt','teachers','reports','setup'],
+  principal:   ['dashboard','students','grades','attendance','staffatt','teachers','reports'],
+  bursar:      ['dashboard','students','fees','store','reports'],
+  storekeeper: ['dashboard','students','store'],
+  teacher:     ['dashboard','students','grades','attendance'],
+  parent:      ['dashboard','students'],
+};
+
+/* Two deliberate absences in the admin row.
+   - 'staffatt': the principal keeps the staff register and the
+     Proprietress reads it. One keeper, two readers.
+   - 'issue': the Proprietress manages the store but does not hand
+     things out; the store keeper hands things out and changes nothing
+     else. Add 'issue' here if she should be able to serve a student
+     when the store keeper is away.
+   The store keeper, in turn, has 'issue' and NOT 'stock': he cannot
+   invent an item, change a price, or record a delivery he did not
+   receive. */
+const ROLE_WRITES = {
+  admin:       ['students','fees','stock','grades','attendance','teachers','setup'],
+  principal:   ['grades','attendance','staffatt'],
+  bursar:      ['fees'],
+  storekeeper: ['issue'],
+  teacher:     ['grades','attendance'],
+  parent:      [],
+};
+
+const PAGES = [
+  { id: 'dashboard',  label: 'Dashboard' },
+  { id: 'students',   label: 'Students' },
+  { id: 'fees',       label: 'Fees' },
+  { id: 'store',      label: 'Store' },
+  { id: 'grades',     label: 'Grades' },
+  { id: 'attendance', label: 'Attendance' },
+  { id: 'staffatt',   label: 'Staff attendance' },
+  { id: 'teachers',   label: 'Staff' },
+  { id: 'reports',    label: 'Reports' },
+  { id: 'setup',      label: 'Setup' },
+];
+
+/* =====================================================================
+   Local storage adapter.
+
+   This build runs from a folder on your own computer with no server and
+   no internet. It presents the same doc()/collection() surface the hosted
+   version uses, so the rest of the code below is unchanged.
+
+   The trade-off: data lives in THIS browser on THIS computer only. Clear
+   your browsing data and it is gone. Use the Export button under Setup
+   before you rely on anything here.
+   ===================================================================== */
+const LocalDB = {
+  prefix: 'hoa:',
+
+  _key(path) { return LocalDB.prefix + path; },
+
+  doc(path) {
+    const key = LocalDB._key(path);
+    return {
+      async get() {
+        const raw = localStorage.getItem(key);
+        return {
+          exists: raw !== null,
+          data: () => (raw === null ? null : JSON.parse(raw)),
+        };
+      },
+      async set(body) {
+        try {
+          localStorage.setItem(key, JSON.stringify(body));
+        } catch (error) {
+          // Roughly 5 MB per site. Hit at maybe a few thousand students.
+          if (error.name === 'QuotaExceededError') {
+            throw Object.assign(new Error('Browser storage is full.'),
+              { code: 'quota_exceeded' });
+          }
+          throw error;
+        }
+        return { key };
+      },
+      async delete() { localStorage.removeItem(key); return { key }; },
+    };
+  },
+
+  collection(name) {
+    const prefix = LocalDB.prefix + name + '/';
+    return {
+      async get() {
+        const docs = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (!k || !k.startsWith(prefix)) continue;
+          const raw = localStorage.getItem(k);
+          docs.push({
+            id: k.slice(prefix.length),
+            data: () => JSON.parse(raw),
+          });
+        }
+        return { docs };
+      },
+    };
+  },
+
+  /** Everything this app owns, as one object. */
+  dump() {
+    const out = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(LocalDB.prefix)) {
+        out[k.slice(LocalDB.prefix.length)] = JSON.parse(localStorage.getItem(k));
+      }
+    }
+    return out;
+  },
+
+  restore(data) {
+    Object.entries(data).forEach(([path, value]) => {
+      localStorage.setItem(LocalDB.prefix + path, JSON.stringify(value));
+    });
+  },
+
+  wipe() {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(LocalDB.prefix)) keys.push(k);
+    }
+    keys.forEach((k) => localStorage.removeItem(k));
+  },
+};
+
+let db = null;
+let readOnly = false;
+
+const S = {
+  page: 'dashboard',
+  role: 'admin',
+  config: null,        // { name, currency, year, terms, currentTerm }
+  classes: [],         // [{id, name}]
+  subjects: [],        // [{id, name, code}]
+  feeItems: [],        // [{id, classId, term, name, amount}]
+  students: [],        // [{id, ...}]
+  payments: [],        // [{id, studentId, term, amount, method, date, receipt}]
+  studentQuery: '',
+  studentClass: 'all',
+  gradeSel: { classId: '', subjectId: '', term: '' },
+  gradeDoc: null,
+  attSel: { classId: '', date: '' },
+  attDoc: null,
+  stockItems: [],     // [{id,name,category,classIds:[],perStudent,price,opening}]
+  stockLedger: null,  // { issues:[{date,rows}], receipts:[{date,rows}] }
+  storeStudentId: '',
+  storeTab: 'issue',
+  staffAttDate: '',   // the day the principal is marking
+  staffMonth: null,   // { ym, days: { '2026-09-19': { teacherId: 'P'|'A'|'L'|'V' } } }
+  staffToday: null,   // today's marks, read for the dashboard card
+  teachers: [],        // [{id, name, phone, email, subjects:[], role}]
+  assignments: [],     // [{id, teacherId, classId, subjectId}]
+  analytics: null,     // every score and attendance doc, loaded on demand
+  reportTab: 'collection',
+  openStudentId: null,
+};
+
+/* --------------------------- helpers --------------------------- */
+const el = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
+  ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+const uid = () => Math.random().toString(36).slice(2, 9);
+const today = () => new Date().toISOString().slice(0, 10);
+
+function money(n) {
+  const cur = S.config?.currency || 'D';
+  const v = Math.round((Number(n) || 0) * 100) / 100;
+  return cur + v.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function bandFor(percent) {
+  return GRADE_BANDS.find((b) => percent >= b.min) || GRADE_BANDS[GRADE_BANDS.length - 1];
+}
+
+function canWrite(area) {
+  return !readOnly && (ROLE_WRITES[S.role] || []).includes(area);
+}
+
+const BANNER_KEY = 'hoa:banner-dismissed';
+
+function paintBanner(html) {
+  let dismissed = false;
+  try { dismissed = localStorage.getItem(BANNER_KEY) === '1'; } catch (e) { /* fine */ }
+
+  const bar = el('banner');
+
+  if (dismissed) {
+    bar.classList.add('hidden');
+    return;
+  }
+
+  bar.classList.remove('hidden');
+  bar.innerHTML = '<span>' + html + '</span>' +
+    '<button id="banner-close" title="Dismiss" aria-label="Dismiss this notice">&times;</button>';
+
+  el('banner-close').addEventListener('click', () => {
+    try { localStorage.setItem(BANNER_KEY, '1'); } catch (e) { /* fine */ }
+    bar.classList.add('hidden');
+  });
+}
+
+function toast(message, bad) {
+  const t = el('toast');
+  t.textContent = message;
+  t.className = 'on' + (bad ? ' bad' : '');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.className = ''; }, 2800);
+}
+
+function guard(area) {
+  if (canWrite(area)) return true;
+  toast(readOnly ? 'This page is read-only for you.' : 'This role cannot change that.', true);
+  return false;
+}
+
+async function save(path, body) {
+  try {
+    await db.doc(path).set(body);
+    return true;
+  } catch (error) {
+    if (error && error.code === 'invalid_argument') {
+      readOnly = true;
+      render();
+      toast('You do not have permission to save changes here.', true);
+    } else if (error && error.code === 'quota_exceeded') {
+      toast('The database is full. Delete old records first.', true);
+    } else {
+      toast('Could not save. Check your connection and try again.', true);
+    }
+    console.error('save failed', path, error);
+    return false;
+  }
+}
+
+/* --------------------------- modal --------------------------- */
+function openModal(html, onMount) {
+  el('modal').innerHTML = html;
+  el('veil').classList.add('on');
+  if (onMount) onMount();
+  const first = el('modal').querySelector('input, select, textarea');
+  if (first) setTimeout(() => first.focus(), 40);
+}
+function closeModal() {
+  el('veil').classList.remove('on');
+  el('modal').innerHTML = '';
+}
+el('veil').addEventListener('click', (e) => { if (e.target.id === 'veil') closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+/* --------------------------- derived data --------------------------- */
+const className = (id) => (S.classes.find((c) => c.id === id) || {}).name || '—';
+const subjectName = (id) => (S.subjects.find((s) => s.id === id) || {}).name || '—';
+const activeStudents = () => S.students.filter((s) => s.status === 'Active');
+
+function studentsIn(classId) {
+  return activeStudents()
+    .filter((s) => s.classId === classId)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** What a student is billed for one term: every fee item for their class. */
+function billed(student, term) {
+  const asNew = isNewStudent(student);
+
+  return S.feeItems
+    .filter((f) => f.classId === student.classId && f.term === term)
+    .filter((f) => !f.newOnly || asNew)
+    .reduce((sum, f) => sum + Number(f.amount || 0), 0);
+}
+
+/**
+ * Registration, uniform and (in upper basic) the book bill are charged once,
+ * to new students. The bill also states that Level 1, Grade 1 and Grade 7 are
+ * always treated as new, because those are the entry points into each stage.
+ */
+function isNewStudent(student) {
+  if (!student) return false;
+  if (HOA_ALWAYS_NEW.includes(className(student.classId))) return true;
+  return student.isNew !== false;
+}
+
+/** What the same student would pay under the other status — for the bill view. */
+function billedAs(student, term, asNew) {
+  return S.feeItems
+    .filter((f) => f.classId === student.classId && f.term === term)
+    .filter((f) => !f.newOnly || asNew)
+    .reduce((sum, f) => sum + Number(f.amount || 0), 0);
+}
+
+function paidBy(studentId, term) {
+  return S.payments
+    .filter((p) => p.studentId === studentId && (term ? p.term === term : true))
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+}
+
+function feeSummary(term) {
+  let bill = 0, paid = 0, owing = 0;
+  activeStudents().forEach((s) => {
+    const b = billed(s, term);
+    const p = paidBy(s.id, term);
+    bill += b; paid += p;
+    if (b - p > 0) owing += b - p;
+  });
+  return { bill, paid, owing };
+}
+
+/**
+ * Student IDs are generated, never typed: HOA-2026-0001.
+ *
+ * The stored field is still `adm` — renaming the key would orphan every
+ * record already saved in this browser, and what changed is the label, not
+ * the data.
+ */
+function nextStudentId() {
+  const year = (S.config.year || '').slice(0, 4) || String(new Date().getFullYear());
+  const used = S.students
+    .map((s) => Number(String(s.adm || '').split('-').pop()))
+    .filter((n) => !isNaN(n));
+  const next = (used.length ? Math.max(...used) : 0) + 1;
+  return 'HOA-' + year + '-' + String(next).padStart(4, '0');
+}
+
+function nextReceiptNumber() {
+  const used = S.payments
+    .map((p) => Number(String(p.receipt || '').split('-').pop()))
+    .filter((n) => !isNaN(n));
+  const next = (used.length ? Math.max(...used) : 0) + 1;
+  return 'RCP-' + String(next).padStart(5, '0');
+}
+
+/* --------------------------- boot --------------------------- */
+async function boot() {
+  db = LocalDB;
+
+  // Opening the file over file:// is fine, but some browsers refuse
+  // localStorage there in private windows. Say so plainly rather than
+  // failing silently on every save.
+  try {
+    localStorage.setItem('hoa:probe', '1');
+    localStorage.removeItem('hoa:probe');
+  } catch (error) {
+    el('boot').innerHTML =
+      '<p>This browser is blocking local storage, so nothing could be saved.</p>' +
+      '<p>Try a normal window rather than a private one, or serve the folder ' +
+      'with <code>python3 -m http.server</code> and open it over http://localhost.</p>';
+    return;
+  }
+
+  await loadAll();
+
+  el('boot').classList.add('hidden');
+  el('app').classList.remove('hidden');
+  render();
+}
+
+async function loadAll() {
+  const [cfg, cls, sub, fee, tea, asg, stk, studentSnap, paySnap] = await Promise.all([
+    db.doc('config/school').get(),
+    db.doc('config/classes').get(),
+    db.doc('config/subjects').get(),
+    db.doc('config/fees').get(),
+    db.doc('config/teachers').get(),
+    db.doc('config/assignments').get(),
+    db.doc('config/stock').get(),
+    db.collection('students').get(),
+    db.collection('payments').get(),
+  ]);
+
+  S.config = cfg.exists ? cfg.data() : {
+    name: 'Hands-On Academy',
+    currency: 'D',
+    year: '2026/2027',
+    terms: ['Term 1', 'Term 2', 'Term 3'],
+    currentTerm: 'Term 1',
+  };
+
+  S.classes  = (cls.exists ? cls.data().items : []) || [];
+  S.subjects = (sub.exists ? sub.data().items : []) || [];
+  S.feeItems = (fee.exists ? fee.data().items : []) || [];
+  S.teachers = (tea.exists ? tea.data().items : []) || [];
+  S.assignments = (asg.exists ? asg.data().items : []) || [];
+  S.stockItems = (stk.exists ? stk.data().items : []) || [];
+
+  S.students = studentSnap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+  S.payments = paySnap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+
+  S.gradeSel.term = S.config.currentTerm;
+  S.attSel.date = today();
+}
+
+/* --------------------------- render --------------------------- */
+function render() {
+  el('brand-year').textContent = S.config.year + ' · ' + S.config.currentTerm;
+  // Dismissible, and it stays dismissed. A warning that cannot be closed
+  // stops being read after the second day, which is worse than no warning.
+  paintBanner('<b>Local build.</b> Data is saved in this browser only \u2014 clearing your browsing data erases it. Export from Setup to keep a copy.');
+
+  const allowed = ROLE_ALLOWS[S.role];
+  if (!allowed.includes(S.page)) S.page = allowed[0];
+
+  el('nav').innerHTML = PAGES
+    .filter((p) => allowed.includes(p.id))
+    .map((p) => '<button data-go="' + p.id + '" class="' + (p.id === S.page ? 'on' : '') + '">'
+      + p.label + '</button>').join('');
+
+  el('role').value = S.role;
+
+  const painters = {
+    dashboard: paintDashboard,
+    students: paintStudents,
+    fees: paintFees,
+    grades: paintGrades,
+    store: paintStore,
+    attendance: paintAttendance,
+    staffatt: paintStaffAttendance,
+    teachers: paintTeachers,
+    reports: paintReports,
+    setup: paintSetup,
+  };
+  painters[S.page]();
+}
+
+el('nav').addEventListener('click', (e) => {
+  const go = e.target.closest('[data-go]');
+  if (go) { S.page = go.dataset.go; render(); }
+});
+
+el('role').addEventListener('change', (e) => { S.role = e.target.value; render(); });
+
+// Delegated once: any [data-student] button in any list opens that profile.
+el('view').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-student]');
+  if (b) openStudent(b.dataset.student);
+});
+
+function needSetup(what) {
+  el('view').innerHTML =
+    '<div class="head"><div><h1>' + esc(what) + '</h1></div></div>' +
+    '<div class="empty"><p>Add your classes and subjects first, under Setup.</p>' +
+    (ROLE_ALLOWS[S.role].includes('setup')
+      ? '<button class="btn" onclick="S.page=\'setup\';render()">Go to Setup</button>' : '') +
+    '</div>';
+}
+
+/* --------------------------- dashboard --------------------------- */
+function paintDashboard() {
+  const term = S.config.currentTerm;
+  const { bill, paid, owing } = feeSummary(term);
+  const students = activeStudents();
+
+  const debtors = students
+    .map((s) => ({ s, due: billed(s, term) - paidBy(s.id, term) }))
+    .filter((r) => r.due > 0)
+    .sort((a, b) => b.due - a.due)
+    .slice(0, 8);
+
+  const collectionRate = bill > 0 ? Math.round((paid / bill) * 100) : 0;
+
+  const recent = S.payments
+    .slice()
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+    .slice(0, 6);
+
+  el('view').innerHTML =
+    '<div class="head"><div><h1>Dashboard</h1>' +
+    '<p>' + esc(S.config.year) + ' · ' + esc(term) + '</p></div></div>' +
+
+    '<div class="stats">' +
+      stat('Students on roll', students.length, S.classes.length + ' classes') +
+      stat('Billed this term', money(bill), S.feeItems.filter(f => f.term === term).length + ' fee items') +
+      stat('Collected', money(paid), collectionRate + '% of billing') +
+      stat('Outstanding', money(owing), debtors.length + ' students owing') +
+    '</div>' +
+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:18px">' +
+
+      '<div class="card"><h2>Largest outstanding balances</h2>' +
+      (debtors.length
+        ? '<div class="scroll"><table><thead><tr><th>Student</th><th>Class</th><th class="num">Owing</th></tr></thead><tbody>' +
+          debtors.map((r) =>
+            '<tr><td>' + esc(r.s.name) + '</td><td>' + esc(className(r.s.classId)) +
+            '</td><td class="num">' + money(r.due) + '</td></tr>').join('') +
+          '</tbody></table></div>'
+        : '<p class="hint">Nothing outstanding for ' + esc(term) + '.</p>') +
+      '</div>' +
+
+      '<div class="card"><h2>Recent payments</h2>' +
+      (recent.length
+        ? '<div class="scroll"><table><thead><tr><th>Receipt</th><th>Student</th><th class="num">Amount</th></tr></thead><tbody>' +
+          recent.map((p) => {
+            const s = S.students.find((x) => x.id === p.studentId);
+            return '<tr><td class="receipt">' + esc(p.receipt) + '</td><td>' +
+              esc(s ? s.name : 'Removed student') + '</td><td class="num">' + money(p.amount) + '</td></tr>';
+          }).join('') +
+          '</tbody></table></div>'
+        : '<p class="hint">No payments recorded yet.</p>') +
+      '</div>' +
+
+      storeSupplyCard() +
+
+      staffAttendanceCard() +
+
+      '<div class="card"><h2>Class roll</h2>' +
+      (S.classes.length
+        ? '<div class="scroll"><table><thead><tr><th>Class</th><th class="num">Students</th><th class="num">Owing</th></tr></thead><tbody>' +
+          S.classes.map((c) => {
+            const inClass = studentsIn(c.id);
+            const due = inClass.reduce((sum, s) =>
+              sum + Math.max(0, billed(s, term) - paidBy(s.id, term)), 0);
+            return '<tr><td>' + esc(c.name) + '</td><td class="num">' + inClass.length +
+              '</td><td class="num">' + money(due) + '</td></tr>';
+          }).join('') + '</tbody></table></div>'
+        : '<p class="hint">No classes set up yet.</p>') +
+      '</div>' +
+
+    '</div>';
+}
+
+/* Staff attendance on the dashboard: the Proprietress and the principal
+   both see today's register. Nobody else does — it is a staffing matter,
+   not general information. */
+function staffAttendanceCard() {
+  if (!['admin', 'principal'].includes(S.role)) return '';
+  if (!S.teachers.length) return '';
+
+  if (!S.staffToday || S.staffToday.date !== today()) {
+    loadStaffToday();
+    return '<div class="card"><h2>Staff attendance today</h2>' +
+      '<p class="hint">Reading the register…</p></div>';
+  }
+
+  const marks = S.staffToday.marks;
+  const roll = S.teachers;
+  const counts = { P: 0, A: 0, L: 0, V: 0 };
+  roll.forEach((t) => { if (counts[marks[t.id]] !== undefined) counts[marks[t.id]]++; });
+  const marked = counts.P + counts.A + counts.L + counts.V;
+
+  const away = roll
+    .filter((t) => marks[t.id] && marks[t.id] !== 'P')
+    .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+
+  return '<div class="card"><h2>Staff attendance today</h2>' +
+    (marked === 0
+      ? '<p class="hint">Not taken yet for ' + esc(today()) + '.</p>'
+      : '<p class="hint">' + counts.P + ' of ' + roll.length + ' present · ' +
+        marked + ' marked</p>' +
+        (away.length
+          ? '<div class="scroll"><table><thead><tr><th>Staff</th><th>Position</th><th>Status</th></tr></thead><tbody>' +
+            away.map((t) =>
+              '<tr><td>' + esc(t.name) + '</td><td>' + esc(t.role || '—') + '</td>' +
+              '<td><span class="tag">' + esc(STAFF_CODE_LABEL[marks[t.id]]) + '</span></td></tr>').join('') +
+            '</tbody></table></div>'
+          : '<p class="hint">Everyone marked is present.</p>')) +
+    '<button class="btn ghost" style="margin-top:12px" ' +
+    'onclick="S.page=\'staffatt\';render()">Open the register</button>' +
+    '</div>';
+}
+
+function stat(k, v, n) {
+  return '<div class="stat"><div class="k">' + esc(k) + '</div><div class="v">' + esc(v) +
+    '</div><div class="n">' + esc(n) + '</div></div>';
+}
+
+/* --------------------------- students --------------------------- */
+function paintStudents() {
+  if (!S.classes.length) return needSetup('Students');
+
+  const q = S.studentQuery.toLowerCase();
+  const rows = S.students
+    .filter((s) => S.studentClass === 'all' || s.classId === S.studentClass)
+    .filter((s) => !q || s.name.toLowerCase().includes(q) || String(s.adm).toLowerCase().includes(q))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const term = S.config.currentTerm;
+  const writable = canWrite('students');
+
+  el('view').innerHTML =
+    '<div class="head"><div><h1>Students</h1>' +
+    '<p>' + activeStudents().length + ' on roll · ' + S.students.length + ' records in total</p></div>' +
+    (writable ? '<button class="btn" id="add-student">Admit a student</button>' : '') +
+    '</div>' +
+
+    '<div class="bar">' +
+      '<input type="text" id="q" placeholder="Search name or student ID" value="' + esc(S.studentQuery) + '">' +
+      '<select id="fc"><option value="all">All classes</option>' +
+      S.classes.map((c) => '<option value="' + c.id + '"' +
+        (S.studentClass === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') +
+      '</select>' +
+    '</div>' +
+
+    (rows.length
+      ? '<div class="card" style="padding:0"><div class="scroll"><table><thead><tr>' +
+        '<th>Student ID</th><th>Name</th><th>Class</th><th>Type</th><th>Status</th>' +
+        '<th class="num">Balance</th>' + (writable ? '<th></th>' : '') +
+        '</tr></thead><tbody>' +
+        rows.map((s) => {
+          const due = billed(s, term) - paidBy(s.id, term);
+          return '<tr>' +
+            '<td class="receipt">' + esc(s.adm) + '</td>' +
+            '<td><button class="btn ghost small" data-student="' + s.id + '">' +
+              esc(s.name) + '</button></td>' +
+            '<td>' + esc(className(s.classId)) + '</td>' +
+            '<td>' + (isNewStudent(s)
+              ? '<span class="tag">new</span>'
+              : '<span class="hint">returning</span>') + '</td>' +
+            '<td><span class="tag ' + (s.status === 'Active' ? 'ok' : '') + '">' + esc(s.status) + '</span></td>' +
+            '<td class="num">' + (due > 0
+              ? '<span class="tag bad">' + money(due) + '</span>'
+              : '<span class="tag ok">settled</span>') + '</td>' +
+            (writable ? '<td class="num"><button class="btn ghost small" data-edit="' + s.id + '">Edit</button></td>' : '') +
+            '</tr>';
+        }).join('') +
+        '</tbody></table></div></div>'
+      : '<div class="empty"><p>' + (S.students.length
+          ? 'No students match that search.'
+          : 'No students admitted yet.') + '</p>' +
+        (writable && !S.students.length ? '<button class="btn" id="add-student-2">Admit the first student</button>' : '') +
+        '</div>');
+
+  el('q').addEventListener('input', (e) => {
+    S.studentQuery = e.target.value;
+    const at = e.target.selectionStart;
+    render();
+    const box = el('q');
+    box.focus(); box.setSelectionRange(at, at);
+  });
+  el('fc').addEventListener('change', (e) => { S.studentClass = e.target.value; render(); });
+
+  ['add-student', 'add-student-2'].forEach((id) => {
+    const b = el(id);
+    if (b) b.addEventListener('click', () => studentForm(null));
+  });
+
+  el('view').querySelectorAll('[data-edit]').forEach((b) => {
+    b.addEventListener('click', () => studentForm(S.students.find((s) => s.id === b.dataset.edit)));
+  });
+}
+
+function studentForm(existing) {
+  if (!guard('students')) return;
+  const s = existing || {};
+  const isNew = !existing;
+
+  openModal(
+    '<h3>' + (isNew ? 'Admit a student' : 'Edit ' + esc(s.name)) + '</h3>' +
+    '<label class="f"><span>Full name</span><input type="text" id="m-name" value="' + esc(s.name || '') + '"></label>' +
+    '<div class="row2">' +
+      '<label class="f"><span>Student ID</span><input type="text" id="m-adm" value="' +
+        esc(s.adm || nextStudentId()) + '" readonly></label>' +
+      '<label class="f"><span>Date of birth</span><input type="date" id="m-dob" value="' + esc(s.dob || '') + '"></label>' +
+    '</div>' +
+    '<div class="row2">' +
+      '<label class="f"><span>Gender</span><select id="m-gender">' +
+        ['Male', 'Female'].map((g) => '<option' + (s.gender === g ? ' selected' : '') + '>' + g + '</option>').join('') +
+      '</select></label>' +
+      '<label class="f"><span>Class</span><select id="m-class">' +
+        S.classes.map((c) => '<option value="' + c.id + '"' +
+          (s.classId === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') +
+      '</select></label>' +
+    '</div>' +
+    '<div class="row2">' +
+      '<label class="f"><span>Guardian name</span><input type="text" id="m-guardian" value="' + esc(s.guardian || '') + '"></label>' +
+      '<label class="f"><span>Guardian phone</span><input type="text" id="m-phone" value="' + esc(s.phone || '') + '"></label>' +
+    '</div>' +
+    '<label class="f"><span>Student type</span><select id="m-new">' +
+      '<option value="new"' + (s.isNew === false ? '' : ' selected') + '>New / re-registering</option>' +
+      '<option value="old"' + (s.isNew === false ? ' selected' : '') + '>Returning</option>' +
+    '</select></label>' +
+    '<label class="f"><span>Status</span><select id="m-status">' +
+      ['Active', 'Withdrawn', 'Graduated', 'Suspended'].map((x) =>
+        '<option' + (s.status === x ? ' selected' : '') + '>' + x + '</option>').join('') +
+    '</select></label>' +
+    '<p class="hint">The student ID is generated by the portal so two clerks ' +
+      'cannot issue the same one.</p>' +
+    '<p class="hint">New students are charged registration and uniform; returning ' +
+      'students are not. Level 1, Grade 1 and Grade 7 are always billed as new.</p>' +
+    '<div class="foot">' +
+      '<button class="btn ghost" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn" id="m-save">' + (isNew ? 'Admit student' : 'Save changes') + '</button>' +
+    '</div>',
+    () => el('m-save').addEventListener('click', async () => {
+      const body = {
+        name: el('m-name').value.trim(),
+        adm: el('m-adm').value.trim(),
+        dob: el('m-dob').value,
+        gender: el('m-gender').value,
+        classId: el('m-class').value,
+        guardian: el('m-guardian').value.trim(),
+        phone: el('m-phone').value.trim(),
+        status: el('m-status').value,
+        isNew: el('m-new').value === 'new',
+        admitted: s.admitted || today(),
+      };
+
+      if (!body.name) return toast('A name is required.', true);
+      if (!body.adm) return toast('A student ID is required.', true);
+
+      const clash = S.students.find((x) => x.adm === body.adm && x.id !== (s.id || ''));
+      if (clash) return toast('That student ID belongs to ' + clash.name + '.', true);
+
+      const id = s.id || uid();
+      if (!(await save('students/' + id, body))) return;
+
+      const record = Object.assign({ id }, body);
+      const at = S.students.findIndex((x) => x.id === id);
+      if (at >= 0) S.students[at] = record; else S.students.push(record);
+
+      closeModal();
+      render();
+      toast(isNew ? body.name + ' admitted as ' + body.adm : 'Changes saved.');
+    })
+  );
+}
+
+/* --------------------------- fees --------------------------- */
+function paintFees() {
+  if (!S.classes.length) return needSetup('Fees');
+
+  const term = S.config.currentTerm;
+  const { bill, paid, owing } = feeSummary(term);
+  const writable = canWrite('fees');
+  const termItems = S.feeItems.filter((f) => f.term === term);
+
+  const ledger = activeStudents()
+    .map((s) => ({ s, bill: billed(s, term), paid: paidBy(s.id, term) }))
+    .sort((a, b) => (b.bill - b.paid) - (a.bill - a.paid));
+
+  el('view').innerHTML =
+    '<div class="head"><div><h1>Fees</h1><p>' + esc(term) + ' · ' + esc(S.config.year) + '</p></div>' +
+    (writable ? '<div style="display:flex;gap:8px">' +
+      '<button class="btn ghost" id="fee-structure">Fee structure</button>' +
+      '<button class="btn green" id="take-payment">Record a payment</button></div>' : '') +
+    '</div>' +
+
+    '<div class="stats">' +
+      stat('Billed', money(bill), termItems.length + ' fee items this term') +
+      stat('Collected', money(paid), S.payments.filter(p => p.term === term).length + ' receipts') +
+      stat('Outstanding', money(owing), ledger.filter(r => r.bill - r.paid > 0).length + ' students') +
+    '</div>' +
+
+    (termItems.length === 0
+      ? '<div class="empty" style="margin-top:18px"><p>No fees have been set for ' + esc(term) + ' yet, ' +
+        'so every balance shows as zero.</p>' +
+        (writable ? '<button class="btn" id="fee-structure-2">Set the fee structure</button>' : '') + '</div>'
+      : '') +
+
+    '<div class="card" style="margin-top:18px;padding:0"><div class="scroll"><table><thead><tr>' +
+    '<th>Student</th><th>Class</th><th class="num">Billed</th><th class="num">Paid</th>' +
+    '<th class="num">Balance</th>' + (writable ? '<th></th>' : '') +
+    '</tr></thead><tbody>' +
+    (ledger.length ? ledger.map((r) => {
+      const due = r.bill - r.paid;
+      return '<tr><td><button class="btn ghost small" data-student="' + r.s.id + '">' +
+          esc(r.s.name) + '</button><br><span class="hint">' + esc(r.s.adm) + '</span></td>' +
+        '<td>' + esc(className(r.s.classId)) + '</td>' +
+        '<td class="num">' + money(r.bill) + '</td>' +
+        '<td class="num">' + money(r.paid) + '</td>' +
+        '<td class="num">' + (due > 0 ? '<span class="tag bad">' + money(due) + '</span>'
+          : due < 0 ? '<span class="tag warn">' + money(-due) + ' credit</span>'
+          : '<span class="tag ok">settled</span>') + '</td>' +
+        (writable ? '<td class="num"><button class="btn ghost small" data-pay="' + r.s.id + '">Pay</button></td>' : '') +
+        '</tr>';
+    }).join('') : '<tr><td colspan="6" class="hint" style="padding:20px">No students on roll.</td></tr>') +
+    '</tbody></table></div></div>' +
+
+    (S.payments.length ? '<div class="card" style="margin-top:18px"><h2>Payment history</h2><div class="scroll">' +
+      '<table><thead><tr><th>Receipt</th><th>Date</th><th>Student</th><th>Method</th><th>Term</th><th class="num">Amount</th></tr></thead><tbody>' +
+      S.payments.slice().sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 25)
+        .map((p) => {
+          const s = S.students.find((x) => x.id === p.studentId);
+          return '<tr><td class="receipt">' + esc(p.receipt) + '</td><td>' + esc(p.date) + '</td>' +
+            '<td>' + esc(s ? s.name : 'Removed') + '</td><td>' + esc(p.method) + '</td>' +
+            '<td>' + esc(p.term) + '</td><td class="num">' + money(p.amount) + '</td></tr>';
+        }).join('') +
+      '</tbody></table></div></div>' : '');
+
+  ['fee-structure', 'fee-structure-2'].forEach((id) => {
+    const b = el(id);
+    if (b) b.addEventListener('click', feeStructureForm);
+  });
+  const tp = el('take-payment');
+  if (tp) tp.addEventListener('click', () => paymentForm(null));
+
+  el('view').querySelectorAll('[data-pay]').forEach((b) => {
+    b.addEventListener('click', () => paymentForm(b.dataset.pay));
+  });
+}
+
+function feeStructureForm() {
+  if (!guard('fees')) return;
+  const term = S.config.currentTerm;
+
+  const listing = () => S.feeItems.filter((f) => f.term === term).length
+    ? '<div class="scroll"><table><thead><tr><th>Item</th><th>Class</th><th class="num">Amount</th><th></th></tr></thead><tbody>' +
+      S.feeItems.filter((f) => f.term === term).map((f) =>
+        '<tr><td>' + esc(f.name) +
+          (f.newOnly ? ' <span class="hint">(new only)</span>' : '') + '</td>' +
+        '<td>' + esc(className(f.classId)) + '</td>' +
+        '<td class="num">' + money(f.amount) + '</td>' +
+        '<td class="num"><button class="btn ghost small" data-del="' + f.id + '">Remove</button></td></tr>').join('') +
+      '</tbody></table></div>'
+    : '<p class="hint">Nothing set for ' + esc(term) + ' yet.</p>';
+
+  const draw = () => {
+    openModal(
+      '<h3>Fee structure — ' + esc(term) + '</h3>' +
+      listing() +
+      '<div style="border-top:1px solid var(--line);margin-top:16px;padding-top:16px">' +
+        '<label class="f"><span>Fee item</span><input type="text" id="fi-name" placeholder="Tuition fee"></label>' +
+        '<div class="row2">' +
+          '<label class="f"><span>Class</span><select id="fi-class">' +
+            S.classes.map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('') +
+          '</select></label>' +
+          '<label class="f"><span>Amount</span><input type="number" id="fi-amount" min="0" step="1" placeholder="4000"></label>' +
+        '</div>' +
+        '<label class="f"><span>Charged to</span><select id="fi-audience">' +
+          '<option value="all">All students</option>' +
+          '<option value="new">New / re-registering students only</option>' +
+        '</select></label>' +
+        '<button class="btn small" id="fi-add">Add fee item</button>' +
+        '<p class="hint">Amounts apply per student, per term. Changing an amount does not alter payments already recorded.</p>' +
+      '</div>' +
+      '<div class="foot"><button class="btn ghost" onclick="closeModal()">Done</button></div>',
+      () => {
+        el('fi-add').addEventListener('click', async () => {
+          const name = el('fi-name').value.trim();
+          const amount = Number(el('fi-amount').value);
+          if (!name) return toast('Give the fee item a name.', true);
+          if (!(amount > 0)) return toast('Enter an amount above zero.', true);
+
+          const items = S.feeItems.concat([{
+            id: uid(), name, amount, term,
+            classId: el('fi-class').value,
+            newOnly: el('fi-audience').value === 'new',
+          }]);
+          if (!(await save('config/fees', { items }))) return;
+          S.feeItems = items;
+          draw();
+          toast(name + ' added.');
+        });
+
+        el('modal').querySelectorAll('[data-del]').forEach((b) => {
+          b.addEventListener('click', async () => {
+            const items = S.feeItems.filter((f) => f.id !== b.dataset.del);
+            if (!(await save('config/fees', { items }))) return;
+            S.feeItems = items;
+            draw();
+            toast('Fee item removed.');
+          });
+        });
+      }
+    );
+  };
+
+  draw();
+}
+
+function paymentForm(studentId) {
+  if (!guard('fees')) return;
+  const term = S.config.currentTerm;
+  const roll = activeStudents().sort((a, b) => a.name.localeCompare(b.name));
+  if (!roll.length) return toast('Admit a student first.', true);
+
+  openModal(
+    '<h3>Record a payment</h3>' +
+    '<label class="f"><span>Student</span><select id="p-student">' +
+      roll.map((s) => '<option value="' + s.id + '"' + (s.id === studentId ? ' selected' : '') + '>' +
+        esc(s.name) + ' — ' + esc(s.adm) + '</option>').join('') +
+    '</select></label>' +
+    '<p class="hint" id="p-owing"></p>' +
+    '<div class="row2">' +
+      '<label class="f"><span>Amount</span><input type="number" id="p-amount" min="0" step="1"></label>' +
+      '<label class="f"><span>Date</span><input type="date" id="p-date" value="' + today() + '"></label>' +
+    '</div>' +
+    '<div class="row2">' +
+      '<label class="f"><span>Method</span><select id="p-method">' +
+        ['Cash', 'Bank transfer', 'Mobile money', 'Cheque'].map((m) => '<option>' + m + '</option>').join('') +
+      '</select></label>' +
+      '<label class="f"><span>Term</span><select id="p-term">' +
+        S.config.terms.map((t) => '<option' + (t === term ? ' selected' : '') + '>' + esc(t) + '</option>').join('') +
+      '</select></label>' +
+    '</div>' +
+    '<label class="f"><span>Reference (optional)</span><input type="text" id="p-ref" placeholder="Bank slip or transaction id"></label>' +
+    '<div class="foot">' +
+      '<button class="btn ghost" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn green" id="p-save">Record and issue receipt</button>' +
+    '</div>',
+    () => {
+      const showOwing = () => {
+        const s = S.students.find((x) => x.id === el('p-student').value);
+        const t = el('p-term').value;
+        const due = billed(s, t) - paidBy(s.id, t);
+        el('p-owing').textContent = due > 0
+          ? 'Outstanding for ' + t + ': ' + money(due)
+          : 'Nothing outstanding for ' + t + '.';
+      };
+      el('p-student').addEventListener('change', showOwing);
+      el('p-term').addEventListener('change', showOwing);
+      showOwing();
+
+      el('p-save').addEventListener('click', async () => {
+        const amount = Number(el('p-amount').value);
+        if (!(amount > 0)) return toast('Enter an amount above zero.', true);
+
+        const id = uid();
+        const body = {
+          studentId: el('p-student').value,
+          amount,
+          date: el('p-date').value || today(),
+          method: el('p-method').value,
+          term: el('p-term').value,
+          reference: el('p-ref').value.trim(),
+          receipt: nextReceiptNumber(),
+          recordedAt: new Date().toISOString(),
+        };
+
+        if (!(await save('payments/' + id, body))) return;
+        S.payments.push(Object.assign({ id }, body));
+
+        const s = S.students.find((x) => x.id === body.studentId);
+        closeModal();
+        render();
+        showReceipt(body, s);
+      });
+    }
+  );
+}
+
+function showReceipt(payment, student) {
+  const due = billed(student, payment.term) - paidBy(student.id, payment.term);
+
+  openModal(
+    '<h3>Receipt ' + esc(payment.receipt) + '</h3>' +
+    '<table><tbody>' +
+      '<tr><td class="hint">Student</td><td>' + esc(student.name) + '</td></tr>' +
+      '<tr><td class="hint">Student ID</td><td>' + esc(student.adm) + '</td></tr>' +
+      '<tr><td class="hint">Class</td><td>' + esc(className(student.classId)) + '</td></tr>' +
+      '<tr><td class="hint">Term</td><td>' + esc(payment.term) + '</td></tr>' +
+      '<tr><td class="hint">Method</td><td>' + esc(payment.method) + '</td></tr>' +
+      '<tr><td class="hint">Date</td><td>' + esc(payment.date) + '</td></tr>' +
+      '<tr><td class="hint">Amount paid</td><td><b>' + money(payment.amount) + '</b></td></tr>' +
+      '<tr><td class="hint">Balance now</td><td>' +
+        (due > 0 ? money(due) + ' outstanding' : 'Fully settled') + '</td></tr>' +
+    '</tbody></table>' +
+    '<p class="hint">Printed receipts come from the Laravel system; this is the on-screen record.</p>' +
+    '<div class="foot"><button class="btn" onclick="closeModal()">Close</button></div>'
+  );
+}
+
+/* --------------------------- grades --------------------------- */
+function paintGrades() {
+  if (!S.classes.length || !S.subjects.length) return needSetup('Grades');
+
+  if (!S.gradeSel.classId) S.gradeSel.classId = S.classes[0].id;
+  if (!S.gradeSel.subjectId) S.gradeSel.subjectId = S.subjects[0].id;
+  if (!S.gradeSel.term) S.gradeSel.term = S.config.currentTerm;
+
+  const roll = studentsIn(S.gradeSel.classId);
+  const marks = (S.gradeDoc && S.gradeDoc.key === gradeKey()) ? S.gradeDoc.marks : null;
+  const writable = canWrite('grades');
+
+  const computed = roll.map((s) => {
+    const m = (marks && marks[s.id]) || {};
+    const ca = Number(m.ca ?? NaN), mid = Number(m.mid ?? NaN), fin = Number(m.final ?? NaN);
+    const any = [ca, mid, fin].some((v) => !isNaN(v));
+    const total = any
+      ? ((isNaN(ca) ? 0 : ca) * WEIGHTS.ca + (isNaN(mid) ? 0 : mid) * WEIGHTS.mid +
+         (isNaN(fin) ? 0 : fin) * WEIGHTS.final) / 100
+      : null;
+    return { s, ca, mid, fin, total };
+  });
+
+  const ranked = computed.filter((r) => r.total !== null)
+    .slice().sort((a, b) => b.total - a.total);
+  const positionOf = (id) => {
+    const at = ranked.findIndex((r) => r.s.id === id);
+    return at < 0 ? '—' : String(at + 1);
+  };
+
+  el('view').innerHTML =
+    '<div class="head"><div><h1>Grades</h1>' +
+    '<p>Continuous assessment ' + WEIGHTS.ca + '% · mid-term ' + WEIGHTS.mid +
+    '% · final ' + WEIGHTS.final + '%</p></div></div>' +
+
+    '<div class="bar">' +
+      '<select id="g-class">' + S.classes.map((c) => '<option value="' + c.id + '"' +
+        (c.id === S.gradeSel.classId ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') + '</select>' +
+      '<select id="g-subject">' + S.subjects.map((s) => '<option value="' + s.id + '"' +
+        (s.id === S.gradeSel.subjectId ? ' selected' : '') + '>' + esc(s.name) + '</option>').join('') + '</select>' +
+      '<select id="g-term">' + S.config.terms.map((t) => '<option' +
+        (t === S.gradeSel.term ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select>' +
+      (marks === null ? '<span class="hint">Loading marks…</span>' : '') +
+    '</div>' +
+
+    (roll.length === 0
+      ? '<div class="empty"><p>No students in ' + esc(className(S.gradeSel.classId)) + '.</p></div>'
+      : '<div class="card" style="padding:0"><div class="scroll"><table><thead><tr>' +
+        '<th>Student</th><th class="num">CA /100</th><th class="num">Mid /100</th>' +
+        '<th class="num">Final /100</th><th class="num">Total</th><th>Grade</th><th class="num">Position</th>' +
+        '</tr></thead><tbody>' +
+        computed.map((r) => {
+          const band = r.total === null ? null : bandFor(r.total);
+          return '<tr><td>' + esc(r.s.name) + '<br><span class="hint">' + esc(r.s.adm) + '</span></td>' +
+            ['ca', 'mid', 'fin'].map((f) => {
+              const value = r[f];
+              return '<td class="num">' + (writable
+                ? '<input class="mark" type="number" min="0" max="100" data-mark="' +
+                  r.s.id + '|' + (f === 'fin' ? 'final' : f) + '" value="' +
+                  (isNaN(value) ? '' : value) + '">'
+                : (isNaN(value) ? '—' : value)) + '</td>';
+            }).join('') +
+            '<td class="num">' + (r.total === null ? '—' : r.total.toFixed(1)) + '</td>' +
+            '<td>' + (band ? '<span class="tag ' + (r.total >= 50 ? 'ok' : 'bad') + '">' +
+              band.letter + '</span> <span class="hint">' + band.note + '</span>' : '—') + '</td>' +
+            '<td class="num">' + positionOf(r.s.id) + '</td></tr>';
+        }).join('') +
+        '</tbody></table></div></div>' +
+        (writable ? '<p class="hint">Marks save automatically when you leave a box. ' +
+          'Teachers in the Laravel system can only open classes they are assigned to.</p>' : ''));
+
+  el('g-class').addEventListener('change', (e) => {
+    S.gradeSel.classId = e.target.value; S.gradeDoc = null; render(); loadGrades();
+  });
+  el('g-subject').addEventListener('change', (e) => {
+    S.gradeSel.subjectId = e.target.value; S.gradeDoc = null; render(); loadGrades();
+  });
+  el('g-term').addEventListener('change', (e) => {
+    S.gradeSel.term = e.target.value; S.gradeDoc = null; render(); loadGrades();
+  });
+
+  el('view').querySelectorAll('[data-mark]').forEach((box) => {
+    box.addEventListener('change', async () => {
+      const [studentId, field] = box.dataset.mark.split('|');
+      let value = box.value === '' ? null : Number(box.value);
+
+      if (value !== null && (isNaN(value) || value < 0 || value > 100)) {
+        toast('Marks must be between 0 and 100.', true);
+        box.value = '';
+        return;
+      }
+
+      const marksNow = Object.assign({}, (S.gradeDoc && S.gradeDoc.marks) || {});
+      const entry = Object.assign({}, marksNow[studentId] || {});
+      if (value === null) delete entry[field]; else entry[field] = value;
+
+      if (Object.keys(entry).length) marksNow[studentId] = entry;
+      else delete marksNow[studentId];
+
+      if (!(await save('scores/' + gradeKey(), { marks: marksNow, updated: new Date().toISOString() }))) return;
+      S.analytics = null;   // reports and report cards must re-read
+      S.gradeDoc = { key: gradeKey(), marks: marksNow };
+      render();
+    });
+  });
+
+  if (marks === null) loadGrades();
+}
+
+function gradeKey() {
+  return S.gradeSel.classId + '_' + S.gradeSel.subjectId + '_' +
+    S.gradeSel.term.replace(/\s+/g, '');
+}
+
+async function loadGrades() {
+  const key = gradeKey();
+  try {
+    const snap = await db.doc('scores/' + key).get();
+    S.gradeDoc = { key, marks: (snap.exists ? snap.data().marks : {}) || {} };
+  } catch (error) {
+    console.error(error);
+    S.gradeDoc = { key, marks: {} };
+    toast('Could not load marks.', true);
+  }
+  if (S.page === 'grades') render();
+}
+
+/* --------------------------- attendance --------------------------- */
+function paintAttendance() {
+  if (!S.classes.length) return needSetup('Attendance');
+
+  if (!S.attSel.classId) S.attSel.classId = S.classes[0].id;
+  if (!S.attSel.date) S.attSel.date = today();
+
+  const roll = studentsIn(S.attSel.classId);
+  const marks = (S.attDoc && S.attDoc.key === attKey()) ? S.attDoc.states : null;
+  const writable = canWrite('attendance');
+
+  const counts = { P: 0, A: 0, L: 0, E: 0 };
+  if (marks) roll.forEach((s) => { if (marks[s.id]) counts[marks[s.id]]++; });
+  const marked = counts.P + counts.A + counts.L + counts.E;
+  const rate = marked ? Math.round(((counts.P + counts.L) / marked) * 100) : 0;
+
+  el('view').innerHTML =
+    '<div class="head"><div><h1>Attendance</h1>' +
+    '<p>' + esc(className(S.attSel.classId)) + ' · ' + esc(S.attSel.date) + '</p></div>' +
+    (writable && roll.length ? '<button class="btn ghost" id="a-all">Mark all present</button>' : '') +
+    '</div>' +
+
+    '<div class="bar">' +
+      '<select id="a-class">' + S.classes.map((c) => '<option value="' + c.id + '"' +
+        (c.id === S.attSel.classId ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') + '</select>' +
+      '<input type="date" id="a-date" style="width:auto" value="' + esc(S.attSel.date) + '">' +
+      (marks === null ? '<span class="hint">Loading register…</span>' : '') +
+    '</div>' +
+
+    (roll.length === 0
+      ? '<div class="empty"><p>No students in this class.</p></div>'
+      : '<div class="stats">' +
+          stat('Present', counts.P, 'of ' + roll.length + ' on roll') +
+          stat('Absent', counts.A, counts.E + ' excused') +
+          stat('Late', counts.L, '') +
+          stat('Attendance', rate + '%', marked + ' marked') +
+        '</div>' +
+        '<div class="card" style="margin-top:18px;padding:0"><div class="scroll"><table><thead><tr>' +
+        '<th>Student</th><th>Present / Absent / Late / Excused</th>' +
+        '</tr></thead><tbody>' +
+        roll.map((s) => {
+          const state = marks ? marks[s.id] : null;
+          return '<tr><td>' + esc(s.name) + '<br><span class="hint">' + esc(s.adm) + '</span></td>' +
+            '<td><div class="att">' +
+            ['P', 'A', 'L', 'E'].map((code) =>
+              '<button data-s="' + code + '" data-set="' + s.id + '|' + code + '" class="' +
+              (state === code ? 'on' : '') + '"' + (writable ? '' : ' disabled') + '>' + code + '</button>').join('') +
+            '</div></td></tr>';
+        }).join('') +
+        '</tbody></table></div></div>');
+
+  el('a-class').addEventListener('change', (e) => {
+    S.attSel.classId = e.target.value; S.attDoc = null; render(); loadAttendance();
+  });
+  el('a-date').addEventListener('change', (e) => {
+    S.attSel.date = e.target.value || today(); S.attDoc = null; render(); loadAttendance();
+  });
+
+  const all = el('a-all');
+  if (all) all.addEventListener('click', async () => {
+    if (!guard('attendance')) return;
+    const states = {};
+    roll.forEach((s) => { states[s.id] = 'P'; });
+    if (!(await save('attendance/' + attKey(), { states, updated: new Date().toISOString() }))) return;
+    S.analytics = null;
+    S.attDoc = { key: attKey(), states };
+    render();
+    toast('All ' + roll.length + ' marked present.');
+  });
+
+  el('view').querySelectorAll('[data-set]').forEach((b) => {
+    b.addEventListener('click', async () => {
+      if (!guard('attendance')) return;
+      const [studentId, code] = b.dataset.set.split('|');
+      const states = Object.assign({}, (S.attDoc && S.attDoc.states) || {});
+
+      if (states[studentId] === code) delete states[studentId];
+      else states[studentId] = code;
+
+      if (!(await save('attendance/' + attKey(), { states, updated: new Date().toISOString() }))) return;
+      S.analytics = null;
+      S.attDoc = { key: attKey(), states };
+      render();
+    });
+  });
+
+  if (marks === null) loadAttendance();
+}
+
+function attKey() {
+  return S.attSel.classId + '_' + S.attSel.date;
+}
+
+async function loadAttendance() {
+  const key = attKey();
+  try {
+    const snap = await db.doc('attendance/' + key).get();
+    S.attDoc = { key, states: (snap.exists ? snap.data().states : {}) || {} };
+  } catch (error) {
+    console.error(error);
+    S.attDoc = { key, states: {} };
+    toast('Could not load the register.', true);
+  }
+  if (S.page === 'attendance') render();
+}
+
+/* --------------------------- the school store ---------------------------
+   Book shop and uniform shop, run off an append-only ledger.
+
+   Documents:
+     config/stock        { items: [...] }              definitions, admin only
+     receipts/{date}     { rows: [{itemId,qty,note}] } deliveries in, admin only
+     issues/{date}       { rows: [{studentId,itemId,...}] } out, store keeper
+
+   Three paths, three permissions. Nobody writes a quantity; everybody
+   writes a movement.
+   --------------------------------------------------------------------- */
+
+function stockItem(id) {
+  return S.stockItems.find((i) => i.id === id) || null;
+}
+
+/** What is actually on the shelf: opening count, plus every delivery, less every issue. */
+function onHand(itemId) {
+  const item = stockItem(itemId);
+  if (!item) return 0;
+
+  let qty = Number(item.opening || 0);
+  if (!S.stockLedger) return qty;
+
+  S.stockLedger.receipts.forEach((d) => d.rows.forEach((r) => {
+    if (r.itemId === itemId) qty += Number(r.qty || 0);
+  }));
+  S.stockLedger.issues.forEach((d) => d.rows.forEach((r) => {
+    if (r.itemId === itemId) qty -= Number(r.qty || 0);
+  }));
+
+  return qty;
+}
+
+/** How many of one item a student has already been given, and when. */
+function issuedToStudent(studentId, itemId) {
+  const out = { qty: 0, last: null };
+  if (!S.stockLedger) return out;
+
+  S.stockLedger.issues.forEach((d) => d.rows.forEach((r) => {
+    if (r.studentId === studentId && r.itemId === itemId) {
+      out.qty += Number(r.qty || 0);
+      if (!out.last || d.date > out.last) out.last = d.date;
+    }
+  }));
+
+  return out;
+}
+
+/**
+ * What this student's grade entitles them to.
+ *
+ * An item with no classes listed is general stock anyone may draw. An item
+ * with classes listed may be issued to those classes only — a Grade 7
+ * uniform is not a Grade 1 uniform, and the store keeper should not have to
+ * remember which is which at the counter.
+ */
+function itemsForStudent(student) {
+  if (!student) return [];
+  return S.stockItems.filter((i) =>
+    !i.classIds || !i.classIds.length || i.classIds.includes(student.classId));
+}
+
+function issuesOn(date) {
+  const doc = S.stockLedger && S.stockLedger.issues.find((d) => d.date === date);
+  return doc ? doc.rows : [];
+}
+
+function lowStock() {
+  return S.stockItems
+    .map((i) => ({ item: i, left: onHand(i.id) }))
+    .filter((r) => r.left <= Number(r.item.reorder || 0))
+    .sort((a, b) => a.left - b.left);
+}
+
+async function loadStockLedger() {
+  try {
+    const [iss, rec] = await Promise.all([
+      db.collection('issues').get(),
+      db.collection('receipts').get(),
+    ]);
+
+    S.stockLedger = {
+      issues: iss.docs.map((d) => ({ date: d.id, rows: d.data().rows || [] })),
+      receipts: rec.docs.map((d) => ({ date: d.id, rows: d.data().rows || [] })),
+    };
+  } catch (error) {
+    console.error(error);
+    S.stockLedger = { issues: [], receipts: [] };
+    toast('Could not load the store ledger.', true);
+  }
+
+  if (S.page === 'store' || S.page === 'dashboard') render();
+}
+
+/** Append one movement to the day's document, in memory and in the store. */
+async function appendMovement(kind, row) {
+  const date = today();
+  const path = kind + '/' + date;
+
+  const bucket = S.stockLedger[kind];
+  const existing = bucket.find((d) => d.date === date);
+  const rows = (existing ? existing.rows : []).concat([row]);
+
+  if (!(await save(path, { rows, updated: new Date().toISOString() }))) return false;
+
+  if (existing) existing.rows = rows;
+  else bucket.push({ date, rows });
+
+  return true;
+}
+
+function paintStore() {
+  const canStock = canWrite('stock');
+  const canIssue = canWrite('issue');
+  const loaded = !!S.stockLedger;
+
+  if (!loaded) loadStockLedger();
+
+  const todayRows = issuesOn(today());
+  const servedToday = new Set(todayRows.map((r) => r.studentId)).size;
+  const unitsToday = todayRows.reduce((a, r) => a + Number(r.qty || 0), 0);
+  const low = loaded ? lowStock() : [];
+
+  el('view').innerHTML =
+    '<div class="head"><div><h1>Store</h1>' +
+    '<p>Book shop and uniform shop · ' + esc(today()) + '</p></div>' +
+    (canStock ? '<div style="display:flex;gap:8px">' +
+      '<button class="btn ghost" id="st-receive">Receive a delivery</button>' +
+      '<button class="btn" id="st-add">Add an item</button></div>' : '') +
+    '</div>' +
+
+    (canStock || canIssue ? '' :
+      '<p class="hint" style="margin-bottom:14px">You can see the store but not ' +
+      'change it.</p>') +
+
+    '<div class="stats">' +
+      stat('Items in the catalogue', S.stockItems.length,
+        S.stockItems.filter((i) => i.category === 'Uniform').length + ' uniform, ' +
+        S.stockItems.filter((i) => i.category === 'Books').length + ' book') +
+      stat('Supplied today', unitsToday, todayRows.length + ' issue(s)') +
+      stat('Students served today', servedToday, '') +
+      stat('Below reorder level', loaded ? low.length : '—',
+        loaded && low.length ? 'order these' : 'nothing to order') +
+    '</div>' +
+
+    (S.stockItems.length === 0
+      ? '<div class="empty" style="margin-top:18px"><p>The store is empty. ' +
+        'Load the catalogue from Setup, or add items one at a time.</p>' +
+        (ROLE_ALLOWS[S.role].includes('setup')
+          ? '<button class="btn" onclick="S.page=\'setup\';render()">Go to Setup</button>'
+          : '') + '</div>'
+      : (canIssue ? issuePanel(loaded) : '') +
+        stockPanel(canStock, loaded) +
+        issuedTodayPanel(todayRows) +
+        (canStock && low.length ? lowStockPanel(low) : '')) +
+
+    (!loaded ? '<p class="hint">Reading the store ledger…</p>' : '');
+
+  wireStore(canStock, canIssue);
+}
+
+/* ---- issuing to a student ---- */
+function issuePanel(loaded) {
+  const roll = activeStudents().sort((a, b) => a.name.localeCompare(b.name));
+
+  if (!roll.length) {
+    return '<div class="card" style="margin-top:18px"><h2>Supply a student</h2>' +
+      '<p class="hint" style="margin-top:0">No students on roll yet.</p></div>';
+  }
+
+  if (!S.storeStudentId || !roll.some((s) => s.id === S.storeStudentId)) {
+    S.storeStudentId = roll[0].id;
+  }
+
+  const student = roll.find((s) => s.id === S.storeStudentId);
+  const eligible = itemsForStudent(student);
+
+  return '<div class="card" style="margin-top:18px"><h2>Supply a student</h2>' +
+    '<div class="bar" style="margin-bottom:14px">' +
+      '<select id="st-student">' + roll.map((s) => '<option value="' + s.id + '"' +
+        (s.id === S.storeStudentId ? ' selected' : '') + '>' + esc(s.name) +
+        ' — ' + esc(className(s.classId)) + '</option>').join('') + '</select>' +
+    '</div>' +
+
+    '<p class="hint" style="margin-top:0">' + esc(student.name) + ' is in ' +
+    esc(className(student.classId)) + ', so only ' + eligible.length +
+    ' of the ' + S.stockItems.length + ' items in the store can be issued to them.</p>' +
+
+    (!loaded
+      ? '<p class="hint">Reading what has already been issued…</p>'
+      : eligible.length === 0
+        ? '<p class="hint">Nothing in the store is set up for this class yet.</p>'
+        : '<div class="scroll"><table><thead><tr><th>Item</th><th>Category</th>' +
+          '<th class="num">On hand</th><th class="num">Already had</th>' +
+          '<th class="num">Quantity</th><th></th></tr></thead><tbody>' +
+          eligible.map((i) => {
+            const left = onHand(i.id);
+            const had = issuedToStudent(student.id, i.id);
+            const cap = Number(i.perStudent || 0);
+            const spent = cap > 0 && had.qty >= cap;
+
+            return '<tr><td>' + esc(i.name) +
+              (cap > 0 ? '<br><span class="hint">' + cap + ' per student per year</span>' : '') +
+              '</td>' +
+              '<td>' + esc(i.category || '—') + '</td>' +
+              '<td class="num">' + (left <= 0
+                ? '<span class="tag bad">none</span>'
+                : left <= Number(i.reorder || 0)
+                  ? '<span class="tag warn">' + left + '</span>'
+                  : left) + '</td>' +
+              '<td class="num">' + (had.qty
+                ? had.qty + '<br><span class="hint">' + esc(had.last) + '</span>'
+                : '<span class="hint">—</span>') + '</td>' +
+              '<td class="num"><input class="mark" type="number" min="1" value="1" ' +
+                'id="q-' + i.id + '"' + (spent || left <= 0 ? ' disabled' : '') + '></td>' +
+              '<td class="num">' + (spent
+                ? '<span class="tag">already supplied</span>'
+                : left <= 0
+                  ? '<span class="tag bad">out of stock</span>'
+                  : '<button class="btn small" data-issue="' + i.id + '">Issue</button>') +
+              '</td></tr>';
+          }).join('') +
+          '</tbody></table></div>') +
+    '</div>';
+}
+
+/* ---- the catalogue ---- */
+function stockPanel(canStock, loaded) {
+  const byCategory = STORE_CATEGORIES
+    .map((c) => ({ category: c, items: S.stockItems.filter((i) => i.category === c) }))
+    .filter((g) => g.items.length);
+
+  const other = S.stockItems.filter((i) => !STORE_CATEGORIES.includes(i.category));
+  if (other.length) byCategory.push({ category: 'Other', items: other });
+
+  return byCategory.map((g) =>
+    '<div class="card" style="margin-top:18px;padding:0">' +
+    '<h2 style="padding:16px 20px;margin:0;border-bottom:1px solid var(--line)">' +
+      esc(g.category) + ' <span class="hint" style="font-weight:400">' +
+      g.items.length + '</span></h2>' +
+    '<div class="scroll"><table><thead><tr><th>Item</th><th>Issued to</th>' +
+    '<th class="num">Price</th><th class="num">On hand</th>' +
+    (canStock ? '<th></th>' : '') + '</tr></thead><tbody>' +
+    g.items.map((i) => {
+      const left = loaded ? onHand(i.id) : null;
+      const classes = (i.classIds || []).map(className);
+
+      return '<tr><td>' + esc(i.name) + '</td>' +
+        '<td>' + (classes.length
+          ? classes.map((c) => '<span class="tag" style="margin:1px">' + esc(c) +
+              '</span>').join(' ')
+          : '<span class="hint">any class</span>') + '</td>' +
+        '<td class="num">' + (i.price ? money(i.price) : '<span class="hint">—</span>') + '</td>' +
+        '<td class="num">' + (left === null ? '<span class="hint">…</span>'
+          : left <= 0 ? '<span class="tag bad">none</span>'
+          : left <= Number(i.reorder || 0) ? '<span class="tag warn">' + left + '</span>'
+          : left) + '</td>' +
+        (canStock ? '<td class="num"><button class="btn ghost small" data-edititem="' +
+          i.id + '">Edit</button></td>' : '') +
+        '</tr>';
+    }).join('') +
+    '</tbody></table></div></div>').join('');
+}
+
+/* ---- the day's supply report ---- */
+function issuedTodayPanel(rows) {
+  return '<div class="card" style="margin-top:18px"><h2>Supplied today</h2>' +
+    (rows.length === 0
+      ? '<p class="hint" style="margin-top:0">Nothing issued yet today.</p>'
+      : '<div class="scroll"><table><thead><tr><th>Time</th><th>Student</th>' +
+        '<th>Class</th><th>Item</th><th class="num">Qty</th><th>Issued by</th>' +
+        '</tr></thead><tbody>' +
+        rows.slice().reverse().map((r) => {
+          const s = S.students.find((x) => x.id === r.studentId);
+          return '<tr><td class="hint">' + esc(String(r.at || '').slice(11, 16)) + '</td>' +
+            '<td>' + esc(s ? s.name : 'Removed student') + '</td>' +
+            '<td>' + esc(s ? className(s.classId) : '—') + '</td>' +
+            // The row carries the item's name as it was on the day. Rename an
+            // item tomorrow and today's report still says what was handed over.
+            '<td>' + esc(r.name) + '</td>' +
+            '<td class="num">' + esc(r.qty) + '</td>' +
+            '<td class="hint">' + esc(r.by || '—') + '</td></tr>';
+        }).join('') +
+        '</tbody></table></div>') +
+    '</div>';
+}
+
+function lowStockPanel(low) {
+  return '<div class="card" style="margin-top:18px"><h2>Order these</h2>' +
+    '<div class="scroll"><table><thead><tr><th>Item</th><th class="num">On hand</th>' +
+    '<th class="num">Reorder at</th></tr></thead><tbody>' +
+    low.map((r) => '<tr><td>' + esc(r.item.name) + '</td>' +
+      '<td class="num"><span class="tag ' + (r.left <= 0 ? 'bad' : 'warn') + '">' +
+      r.left + '</span></td>' +
+      '<td class="num hint">' + Number(r.item.reorder || 0) + '</td></tr>').join('') +
+    '</tbody></table></div>' +
+    '<p class="hint">A uniform that runs out in the first week of term is a ' +
+    'parent standing at the counter with money in their hand.</p></div>';
+}
+
+function wireStore(canStock, canIssue) {
+  const pick = el('st-student');
+  if (pick) pick.addEventListener('change', (e) => {
+    S.storeStudentId = e.target.value; render();
+  });
+
+  const add = el('st-add');
+  if (add) add.addEventListener('click', () => stockItemForm(null));
+
+  const recv = el('st-receive');
+  if (recv) recv.addEventListener('click', receiveForm);
+
+  el('view').querySelectorAll('[data-edititem]').forEach((b) => {
+    b.addEventListener('click', () => stockItemForm(stockItem(b.dataset.edititem)));
+  });
+
+  el('view').querySelectorAll('[data-issue]').forEach((b) => {
+    b.addEventListener('click', () => issueToStudent(b.dataset.issue));
+  });
+}
+
+/**
+ * Hand an item over.
+ *
+ * Every refusal below is a refusal the store keeper would otherwise have to
+ * remember: the wrong grade, the second uniform, the shelf that is already
+ * empty. Making the screen say no is the whole point of putting the store
+ * in the portal.
+ */
+async function issueToStudent(itemId) {
+  if (!guard('issue')) return;
+
+  const item = stockItem(itemId);
+  const student = S.students.find((s) => s.id === S.storeStudentId);
+  if (!item || !student) return;
+
+  const box = el('q-' + itemId);
+  const qty = Math.floor(Number(box ? box.value : 1));
+
+  if (!(qty > 0)) return toast('Enter a quantity of at least one.', true);
+
+  if (!itemsForStudent(student).some((i) => i.id === itemId)) {
+    return toast(item.name + ' is not issued to ' + className(student.classId) + '.', true);
+  }
+
+  const left = onHand(itemId);
+  if (qty > left) {
+    return toast('Only ' + left + ' left on the shelf.', true);
+  }
+
+  const cap = Number(item.perStudent || 0);
+  const had = issuedToStudent(student.id, itemId);
+  if (cap > 0 && had.qty + qty > cap) {
+    return toast(
+      student.name + ' already had ' + had.qty + ' on ' + had.last +
+      '. The allowance is ' + cap + ' per year.', true
+    );
+  }
+
+  const row = {
+    id: uid(),
+    studentId: student.id,
+    itemId,
+    name: item.name,          // copied, not referenced — see the panel above
+    qty,
+    by: PORTAL_ROLE_LABEL[S.role] || S.role,
+    at: new Date().toISOString(),
+  };
+
+  if (!(await appendMovement('issues', row))) return;
+
+  render();
+  toast(qty + ' × ' + item.name + ' issued to ' + student.name + '.');
+}
+
+/* ---- the Proprietress's two jobs: define items, receive deliveries ---- */
+function stockItemForm(existing) {
+  if (!guard('stock')) return;
+  const i = existing || {};
+  const isNew = !existing;
+
+  openModal(
+    '<h3>' + (isNew ? 'Add an item' : 'Edit ' + esc(i.name)) + '</h3>' +
+    '<label class="f"><span>Item</span><input type="text" id="i-name" value="' +
+      esc(i.name || '') + '" placeholder="Uniform set · Grade 7"></label>' +
+    '<div class="row2">' +
+      '<label class="f"><span>Category</span><select id="i-cat">' +
+        STORE_CATEGORIES.map((c) => '<option' + (i.category === c ? ' selected' : '') +
+          '>' + c + '</option>').join('') + '</select></label>' +
+      '<label class="f"><span>Price</span><input type="number" id="i-price" min="0" ' +
+        'step="1" value="' + esc(i.price || '') + '"></label>' +
+    '</div>' +
+    '<div class="row2">' +
+      '<label class="f"><span>Allowance per student, per year</span>' +
+        '<input type="number" id="i-cap" min="0" step="1" value="' +
+        esc(i.perStudent === undefined ? 1 : i.perStudent) + '"></label>' +
+      '<label class="f"><span>Warn when stock reaches</span>' +
+        '<input type="number" id="i-reorder" min="0" step="1" value="' +
+        esc(i.reorder || 0) + '"></label>' +
+    '</div>' +
+    (isNew
+      ? '<label class="f"><span>Opening stock</span><input type="number" id="i-opening" ' +
+        'min="0" step="1" value="0"></label>'
+      : '') +
+    '<label class="f"><span>Issue to which classes</span>' +
+      '<select id="i-classes" multiple size="6">' +
+      S.classes.map((c) => '<option value="' + c.id + '"' +
+        ((i.classIds || []).includes(c.id) ? ' selected' : '') + '>' +
+        esc(c.name) + '</option>').join('') + '</select></label>' +
+    '<p class="hint">Select none to let any class draw it. Hold Ctrl (or ⌘) ' +
+    'to pick several.</p>' +
+    '<p class="hint">An allowance of 0 means no limit. The opening stock can ' +
+    'only be set when the item is created — after that, quantities change by ' +
+    'recording a delivery, so the store always says where a figure came from.</p>' +
+    '<div class="foot">' +
+      (isNew ? '' : '<button class="btn ghost" id="i-remove" style="margin-right:auto">Remove</button>') +
+      '<button class="btn ghost" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn" id="i-save">' + (isNew ? 'Add item' : 'Save') + '</button>' +
+    '</div>',
+    () => {
+      el('i-save').addEventListener('click', async () => {
+        const name = el('i-name').value.trim();
+        if (!name) return toast('Give the item a name.', true);
+
+        const id = i.id || uid();
+        const record = {
+          id, name,
+          category: el('i-cat').value,
+          price: Number(el('i-price').value) || 0,
+          perStudent: Math.max(0, Math.floor(Number(el('i-cap').value) || 0)),
+          reorder: Math.max(0, Math.floor(Number(el('i-reorder').value) || 0)),
+          classIds: Array.from(el('i-classes').selectedOptions).map((o) => o.value),
+          opening: isNew
+            ? Math.max(0, Math.floor(Number(el('i-opening').value) || 0))
+            : Number(i.opening || 0),
+        };
+
+        const items = S.stockItems.slice();
+        const at = items.findIndex((x) => x.id === id);
+        if (at >= 0) items[at] = record; else items.push(record);
+
+        if (!(await save('config/stock', { items }))) return;
+        S.stockItems = items;
+        closeModal();
+        render();
+        toast(isNew ? name + ' added to the store.' : 'Changes saved.');
+      });
+
+      const remove = el('i-remove');
+      if (remove) remove.addEventListener('click', async () => {
+        if (!confirm('Remove ' + i.name + ' from the catalogue? Issues already ' +
+          'recorded against it are kept.')) return;
+
+        const items = S.stockItems.filter((x) => x.id !== i.id);
+        if (!(await save('config/stock', { items }))) return;
+        S.stockItems = items;
+        closeModal();
+        render();
+        toast(i.name + ' removed.');
+      });
+    }
+  );
+}
+
+function receiveForm() {
+  if (!guard('stock')) return;
+  if (!S.stockItems.length) return toast('Add an item first.', true);
+
+  openModal(
+    '<h3>Receive a delivery</h3>' +
+    '<label class="f"><span>Item</span><select id="r-item">' +
+      S.stockItems.map((i) => '<option value="' + i.id + '">' + esc(i.name) +
+        '</option>').join('') + '</select></label>' +
+    '<div class="row2">' +
+      '<label class="f"><span>Quantity received</span>' +
+        '<input type="number" id="r-qty" min="1" step="1"></label>' +
+      '<label class="f"><span>Supplier or invoice</span>' +
+        '<input type="text" id="r-note" placeholder="Optional"></label>' +
+    '</div>' +
+    '<p class="hint">This is added to the ledger as a delivery in. Stock ' +
+    'levels are never typed over — they are what the deliveries and the ' +
+    'issues add up to.</p>' +
+    '<div class="foot">' +
+      '<button class="btn ghost" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn" id="r-save">Record the delivery</button>' +
+    '</div>',
+    () => el('r-save').addEventListener('click', async () => {
+      const itemId = el('r-item').value;
+      const qty = Math.floor(Number(el('r-qty').value));
+      if (!(qty > 0)) return toast('Enter a quantity of at least one.', true);
+
+      const item = stockItem(itemId);
+      if (!S.stockLedger) await loadStockLedger();
+
+      const ok = await appendMovement('receipts', {
+        id: uid(), itemId, name: item.name, qty,
+        note: el('r-note').value.trim(),
+        by: PORTAL_ROLE_LABEL[S.role] || S.role,
+        at: new Date().toISOString(),
+      });
+      if (!ok) return;
+
+      closeModal();
+      render();
+      toast(qty + ' × ' + item.name + ' received. Now ' + onHand(itemId) + ' on hand.');
+    })
+  );
+}
+
+/**
+ * The daily supply report, on the Proprietress's dashboard.
+ *
+ * Summed by item rather than listed issue by issue: what she needs to see
+ * at a glance is "eleven uniforms went out today", not eleven rows. The
+ * full list is one click away on the Store page.
+ */
+function storeSupplyCard() {
+  if (!['admin', 'storekeeper'].includes(S.role)) return '';
+  if (!S.stockItems.length) return '';
+
+  if (!S.stockLedger) {
+    loadStockLedger();
+    return '<div class="card"><h2>Supplied today</h2>' +
+      '<p class="hint">Reading the store ledger…</p></div>';
+  }
+
+  const rows = issuesOn(today());
+  const byItem = {};
+  rows.forEach((r) => {
+    byItem[r.name] = (byItem[r.name] || 0) + Number(r.qty || 0);
+  });
+
+  const served = new Set(rows.map((r) => r.studentId)).size;
+  const low = lowStock();
+
+  return '<div class="card"><h2>Supplied today</h2>' +
+    (rows.length === 0
+      ? '<p class="hint" style="margin-top:0">Nothing has gone out of the store ' +
+        'today.</p>'
+      : '<p class="hint" style="margin-top:0">' + served + ' student(s) served · ' +
+        rows.length + ' issue(s)</p>' +
+        '<div class="scroll"><table><thead><tr><th>Item</th>' +
+        '<th class="num">Supplied</th></tr></thead><tbody>' +
+        Object.entries(byItem).sort((a, b) => b[1] - a[1]).map(([name, qty]) =>
+          '<tr><td>' + esc(name) + '</td><td class="num">' + qty + '</td></tr>').join('') +
+        '</tbody></table></div>') +
+
+    (low.length
+      ? '<p class="hint"><b>' + low.length + '</b> item(s) at or below the reorder ' +
+        'level: ' + esc(low.slice(0, 3).map((r) => r.item.name).join(', ')) +
+        (low.length > 3 ? ' and ' + (low.length - 3) + ' more' : '') + '</p>'
+      : '') +
+
+    '<button class="btn ghost" style="margin-top:12px" ' +
+    'onclick="S.page=\'store\';render()">Open the store</button>' +
+    '</div>';
+}
+
+/**
+ * Build the catalogue from the school's own bill.
+ *
+ * Every item here exists because the school charges for it, and it is
+ * issued to exactly the levels that pay for it. That is not a shortcut —
+ * it is the only definition of "what this grade is entitled to" that the
+ * school has already agreed and printed.
+ */
+async function loadStoreCatalogue() {
+  if (!S.classes.length) {
+    return toast('Load the fee structure first — the store follows it.', true);
+  }
+
+  const button = el('load-store');
+  if (button) { button.disabled = true; button.textContent = 'Loading…'; }
+
+  try {
+    const items = S.stockItems.slice();
+
+    HOA_FEES.forEach((level) => {
+      const klass = S.classes.find((c) => c.name === level.level);
+      if (!klass) return;
+
+      Object.entries(STORE_FROM_FEES).forEach(([feeName, spec]) => {
+        // Charged in any term? Term 1 carries the one-off items.
+        const price = ['1', '2', '3']
+          .map((t) => level.terms[t] && level.terms[t][feeName])
+          .find((v) => v !== undefined);
+        if (price === undefined) return;
+
+        const name = spec.label + ' · ' + level.level;
+
+        const at = items.findIndex((x) => x.name === name);
+        const record = {
+          id: at >= 0 ? items[at].id : uid(),
+          name,
+          category: spec.category,
+          price,
+          perStudent: 1,
+          reorder: 5,
+          classIds: [klass.id],
+          opening: at >= 0 ? Number(items[at].opening || 0) : 0,
+        };
+
+        if (at >= 0) items[at] = record; else items.push(record);
+      });
+    });
+
+    if (!(await save('config/stock', { items }))) return;
+    S.stockItems = items;
+    render();
+    toast(items.length + ' item(s) in the store catalogue.');
+  } catch (error) {
+    console.error(error);
+    toast('Could not build the catalogue.', true);
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Load the store catalogue'; }
+  }
+}
+
+/* --------------------------- staff attendance ---------------------------
+   One document per month, not per day: `staffattendance/2026-09` holds
+   { days: { '2026-09-19': { teacherId: 'P' } } }. Twelve staff over a
+   22-day month is ~264 entries, well inside a document, and it means the
+   monthly summary and the Proprietress's dashboard card each cost one
+   read instead of thirty-one.
+   ------------------------------------------------------------------- */
+const ymOf = (date) => String(date).slice(0, 7);
+
+function paintStaffAttendance() {
+  if (!S.teachers.length) {
+    el('view').innerHTML =
+      '<div class="head"><div><h1>Staff attendance</h1></div></div>' +
+      '<div class="empty"><p>No staff on file yet. Load the staff list from Setup first.</p></div>';
+    return;
+  }
+
+  if (!S.staffAttDate) S.staffAttDate = today();
+  const date = S.staffAttDate;
+  const ym = ymOf(date);
+
+  const loaded = S.staffMonth && S.staffMonth.ym === ym;
+  const days = loaded ? S.staffMonth.days : null;
+  const marks = days ? (days[date] || {}) : null;
+  const writable = canWrite('staffatt');
+
+  const roll = S.teachers.slice().sort((a, b) =>
+    (STAFF_UNITS.indexOf(a.unit) - STAFF_UNITS.indexOf(b.unit)) ||
+    String(a.name).localeCompare(String(b.name)));
+
+  const counts = { P: 0, A: 0, L: 0, V: 0 };
+  if (marks) roll.forEach((t) => { if (marks[t.id]) counts[marks[t.id]]++; });
+  const marked = counts.P + counts.A + counts.L + counts.V;
+
+  // Running totals for the month, so a pattern of absence is visible.
+  const monthly = {};
+  roll.forEach((t) => { monthly[t.id] = { P: 0, A: 0, L: 0, V: 0, days: 0 }; });
+  if (days) {
+    Object.values(days).forEach((dayMarks) => {
+      Object.entries(dayMarks || {}).forEach(([tid, code]) => {
+        if (monthly[tid] && monthly[tid][code] !== undefined) {
+          monthly[tid][code]++;
+          monthly[tid].days++;
+        }
+      });
+    });
+  }
+
+  el('view').innerHTML =
+    '<div class="head"><div><h1>Staff attendance</h1>' +
+    '<p>' + esc(date) + ' · kept by the principal</p></div>' +
+    (writable ? '<button class="btn ghost" id="sa-all">Mark all present</button>' : '') +
+    '</div>' +
+
+    (writable ? '' :
+      '<p class="hint" style="margin-bottom:14px">You can see this register but not change it. ' +
+      'The principal keeps it.</p>') +
+
+    '<div class="bar">' +
+      '<input type="date" id="sa-date" style="width:auto" value="' + esc(date) + '">' +
+      (loaded ? '' : '<span class="hint">Loading register…</span>') +
+    '</div>' +
+
+    '<div class="stats">' +
+      stat('Present', counts.P, 'of ' + roll.length + ' staff') +
+      stat('Absent', counts.A, counts.V + ' on leave') +
+      stat('Late', counts.L, '') +
+      stat('Marked', marked, marked === roll.length ? 'register complete' : (roll.length - marked) + ' still blank') +
+    '</div>' +
+
+    '<div class="card" style="margin-top:18px;padding:0"><div class="scroll"><table><thead><tr>' +
+    '<th>Staff</th><th>' + STAFF_CODES.map((c) => c.label).join(' / ') + '</th>' +
+    '<th class="num">This month</th>' +
+    '</tr></thead><tbody>' +
+    roll.map((t) => {
+      const state = marks ? marks[t.id] : null;
+      const m = monthly[t.id];
+      const away = m.A + m.V;
+      return '<tr><td>' + esc(t.name) +
+        '<br><span class="hint">' + esc(t.role || t.unit || 'Staff') + '</span></td>' +
+        '<td><div class="att">' +
+        STAFF_CODES.map((c) =>
+          '<button data-s="' + c.code + '" title="' + c.label + '" data-sset="' + t.id + '|' + c.code + '" class="' +
+          (state === c.code ? 'on' : '') + '"' + (writable ? '' : ' disabled') + '>' + c.code + '</button>').join('') +
+        '</div></td>' +
+        '<td class="num">' + (m.days
+          ? m.P + ' present' + (away ? ' · ' + away + ' away' : '') + (m.L ? ' · ' + m.L + ' late' : '')
+          : '<span class="hint">—</span>') + '</td></tr>';
+    }).join('') +
+    '</tbody></table></div></div>' +
+    '<p class="hint" style="margin-top:10px">P present · A absent · L late · V on leave. ' +
+    'Click a mark again to clear it.</p>';
+
+  el('sa-date').addEventListener('change', (e) => {
+    S.staffAttDate = e.target.value || today();
+    render();
+    if (!(S.staffMonth && S.staffMonth.ym === ymOf(S.staffAttDate))) loadStaffMonth();
+  });
+
+  const all = el('sa-all');
+  if (all) all.addEventListener('click', async () => {
+    if (!guard('staffatt')) return;
+    const next = {};
+    roll.forEach((t) => { next[t.id] = 'P'; });
+    if (!(await saveStaffDay(date, next))) return;
+    render();
+    toast('All ' + roll.length + ' staff marked present.');
+  });
+
+  el('view').querySelectorAll('[data-sset]').forEach((b) => {
+    b.addEventListener('click', async () => {
+      if (!guard('staffatt')) return;
+      const [teacherId, code] = b.dataset.sset.split('|');
+      const next = Object.assign({}, marks || {});
+      if (next[teacherId] === code) delete next[teacherId];
+      else next[teacherId] = code;
+      if (!(await saveStaffDay(date, next))) return;
+      render();
+    });
+  });
+
+  if (!loaded) loadStaffMonth();
+}
+
+async function loadStaffMonth() {
+  const ym = ymOf(S.staffAttDate || today());
+  try {
+    const snap = await db.doc('staffattendance/' + ym).get();
+    S.staffMonth = { ym, days: (snap.exists ? snap.data().days : {}) || {} };
+  } catch (error) {
+    console.error(error);
+    S.staffMonth = { ym, days: {} };
+    toast('Could not load the staff register.', true);
+  }
+  if (S.page === 'staffatt') render();
+}
+
+async function saveStaffDay(date, dayMarks) {
+  const ym = ymOf(date);
+  const days = Object.assign({}, (S.staffMonth && S.staffMonth.ym === ym) ? S.staffMonth.days : {});
+  if (Object.keys(dayMarks).length) days[date] = dayMarks;
+  else delete days[date];
+
+  if (!(await save('staffattendance/' + ym, { days, updated: new Date().toISOString() }))) return false;
+  S.staffMonth = { ym, days };
+  if (ym === ymOf(today())) S.staffToday = null;  // dashboard card re-reads
+  return true;
+}
+
+/* The Proprietress's dashboard card reads the same month document. */
+async function loadStaffToday() {
+  const ym = ymOf(today());
+  try {
+    const snap = await db.doc('staffattendance/' + ym).get();
+    const days = (snap.exists ? snap.data().days : {}) || {};
+    S.staffToday = { date: today(), marks: days[today()] || {} };
+  } catch (error) {
+    console.error(error);
+    S.staffToday = { date: today(), marks: {} };
+  }
+  if (S.page === 'dashboard') render();
+}
+
+/* --------------------------- setup --------------------------- */
+function paintSetup() {
+  const writable = canWrite('setup');
+
+  el('view').innerHTML =
+    '<div class="head"><div><h1>Setup</h1>' +
+    '<p>School details, academic year, classes and subjects</p></div></div>' +
+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px">' +
+
+      '<div class="card"><h2>School</h2>' +
+        '<label class="f"><span>School name</span><input type="text" id="c-name" value="' +
+          esc(S.config.name) + '"' + (writable ? '' : ' disabled') + '></label>' +
+        '<div class="row2">' +
+          '<label class="f"><span>Currency symbol</span><input type="text" id="c-cur" value="' +
+            esc(S.config.currency) + '"' + (writable ? '' : ' disabled') + '></label>' +
+          '<label class="f"><span>Academic year</span><input type="text" id="c-year" value="' +
+            esc(S.config.year) + '"' + (writable ? '' : ' disabled') + '></label>' +
+        '</div>' +
+        '<label class="f"><span>Current term</span><select id="c-term"' + (writable ? '' : ' disabled') + '>' +
+          S.config.terms.map((t) => '<option' + (t === S.config.currentTerm ? ' selected' : '') + '>' +
+            esc(t) + '</option>').join('') + '</select></label>' +
+        (writable ? '<button class="btn small" id="c-save">Save school details</button>' : '') +
+      '</div>' +
+
+      '<div class="card"><h2>Classes</h2>' +
+        (S.classes.length
+          ? '<table><tbody>' + S.classes.map((c) =>
+              '<tr><td>' + esc(c.name) + '</td><td class="hint">' + studentsIn(c.id).length + ' students</td>' +
+              (writable ? '<td class="num"><button class="btn ghost small" data-delclass="' + c.id +
+                '">Remove</button></td>' : '') + '</tr>').join('') + '</tbody></table>'
+          : '<p class="hint">No classes yet.</p>') +
+        (writable ? '<div style="display:flex;gap:8px;margin-top:12px">' +
+          '<input type="text" id="new-class" placeholder="Grade 4 Blue">' +
+          '<button class="btn small" id="add-class">Add</button></div>' : '') +
+      '</div>' +
+
+      '<div class="card"><h2>Subjects</h2>' +
+        (S.subjects.length
+          ? '<table><tbody>' + S.subjects.map((s) =>
+              '<tr><td>' + esc(s.name) + '</td>' +
+              (writable ? '<td class="num"><button class="btn ghost small" data-delsubject="' + s.id +
+                '">Remove</button></td>' : '') + '</tr>').join('') + '</tbody></table>'
+          : '<p class="hint">No subjects yet.</p>') +
+        (writable ? '<div style="display:flex;gap:8px;margin-top:12px">' +
+          '<input type="text" id="new-subject" placeholder="Mathematics">' +
+          '<button class="btn small" id="add-subject">Add</button></div>' : '') +
+      '</div>' +
+
+      '<div class="card"><h2>Grading scale</h2>' +
+        '<table><tbody>' + GRADE_BANDS.map((b) =>
+          '<tr><td><b>' + b.letter + '</b></td><td class="hint">' + b.min + ' and above</td>' +
+          '<td class="hint">' + b.note + '</td></tr>').join('') + '</tbody></table>' +
+        '<p class="hint">Fixed in this prototype. In the Laravel system this is a table the school can edit.</p>' +
+      '</div>' +
+
+      (writable ? '<div class="card"><h2>Staff</h2>' +
+        '<p class="hint" style="margin-top:0">Loads the Hands-On Academy staff ' +
+        'list \u2014 administration, section heads and department heads, with the ' +
+        'portal access each one needs.</p>' +
+        (S.teachers.length
+          ? '<p class="hint">' + S.teachers.length + ' member(s) of staff on file. ' +
+            'Loading again updates titles without duplicating anyone.</p>'
+          : '') +
+        '<button class="btn small" id="load-staff" style="margin-top:12px">' +
+        'Load the staff list</button>' +
+      '</div>' : '') +
+
+      (writable ? '<div class="card"><h2>Book shop and uniform store</h2>' +
+        '<p class="hint" style="margin-top:0">Builds the store catalogue from the ' +
+        'school\'s own bill: a book pack, uniform set, stationery pack and abacus ' +
+        'for each level that is charged for one, issued only to that level.</p>' +
+        (S.stockItems.length
+          ? '<p class="hint">' + S.stockItems.length + ' item(s) in the store. ' +
+            'Loading again refreshes prices without touching stock.</p>'
+          : '') +
+        '<button class="btn small" id="load-store" style="margin-top:12px">' +
+        'Load the store catalogue</button>' +
+      '</div>' : '') +
+
+      (writable ? '<div class="card"><h2>Fee structure</h2>' +
+        '<p class="hint" style="margin-top:0">Loads the published Hands-On Academy ' +
+        'bill for 2026/2027 — nine levels, all three terms, ' +
+        'with registration and uniform marked as new-student items.</p>' +
+        (S.feeItems.length
+          ? '<p class="hint">' + S.feeItems.length + ' fee items are already set up.</p>'
+          : '<button class="btn small" id="load-fees" style="margin-top:12px">Load the 2026/2027 fees</button>') +
+      '</div>' : '') +
+
+      (writable ? '<div class="card"><h2>Backup</h2>' +
+        '<p class="hint" style="margin-top:0">Everything lives in this browser. ' +
+        'Clearing your browsing data erases it with no warning, so export ' +
+        'a copy whenever you have entered anything you would hate to retype.</p>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">' +
+          '<button class="btn small" id="export">Export to file</button>' +
+          '<button class="btn ghost small" id="import">Import a file</button>' +
+          '<button class="btn ghost small" id="wipe">Erase everything</button>' +
+        '</div>' +
+        '<input type="file" id="import-file" accept="application/json" style="display:none">' +
+      '</div>' : '') +
+
+      (writable ? '<div class="card"><h2>Sample data</h2>' +
+        '<p class="hint" style="margin-top:0">Fills the portal with three classes, six subjects, ' +
+        'twelve students and a term of fees so you can try every screen. Add it to an empty portal.</p>' +
+        '<button class="btn ghost small" id="seed" style="margin-top:12px">Load sample data</button>' +
+      '</div>' : '') +
+
+    '</div>';
+
+  if (!writable) return;
+
+  el('c-save').addEventListener('click', async () => {
+    const body = Object.assign({}, S.config, {
+      name: el('c-name').value.trim() || 'Hands-On Academy',
+      currency: el('c-cur').value.trim() || 'D',
+      year: el('c-year').value.trim() || '2026/2027',
+      currentTerm: el('c-term').value,
+    });
+    if (!(await save('config/school', body))) return;
+    S.config = body;
+    render();
+    toast('School details saved.');
+  });
+
+  el('add-class').addEventListener('click', async () => {
+    const name = el('new-class').value.trim();
+    if (!name) return toast('Type a class name.', true);
+    const items = S.classes.concat([{ id: uid(), name }]);
+    if (!(await save('config/classes', { items }))) return;
+    S.classes = items; render(); toast(name + ' added.');
+  });
+
+  el('add-subject').addEventListener('click', async () => {
+    const name = el('new-subject').value.trim();
+    if (!name) return toast('Type a subject name.', true);
+    const items = S.subjects.concat([{ id: uid(), name }]);
+    if (!(await save('config/subjects', { items }))) return;
+    S.subjects = items; render(); toast(name + ' added.');
+  });
+
+  el('view').querySelectorAll('[data-delclass]').forEach((b) => {
+    b.addEventListener('click', async () => {
+      const id = b.dataset.delclass;
+      if (studentsIn(id).length) return toast('Move its students to another class first.', true);
+      const items = S.classes.filter((c) => c.id !== id);
+      if (!(await save('config/classes', { items }))) return;
+      S.classes = items; render(); toast('Class removed.');
+    });
+  });
+
+  el('view').querySelectorAll('[data-delsubject]').forEach((b) => {
+    b.addEventListener('click', async () => {
+      const items = S.subjects.filter((s) => s.id !== b.dataset.delsubject);
+      if (!(await save('config/subjects', { items }))) return;
+      S.subjects = items; render(); toast('Subject removed.');
+    });
+  });
+
+  const staffBtn = el('load-staff');
+  if (staffBtn) staffBtn.addEventListener('click', loadHoaStaff);
+
+  const storeBtn = el('load-store');
+  if (storeBtn) storeBtn.addEventListener('click', loadStoreCatalogue);
+
+  const loadBtn = el('load-fees');
+  if (loadBtn) loadBtn.addEventListener('click', loadHoaFees);
+
+  el('seed').addEventListener('click', seed);
+
+  el('export').addEventListener('click', () => {
+    const payload = {
+      exported: new Date().toISOString(),
+      school: S.config.name,
+      data: LocalDB.dump(),
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'hands-on-portal-' + today() + '.json';
+    link.click();
+    URL.revokeObjectURL(link.href);
+
+    toast('Exported. Keep the file somewhere other than this computer.');
+  });
+
+  el('import').addEventListener('click', () => el('import-file').click());
+
+  el('import-file').addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    try {
+      const parsed = JSON.parse(await file.text());
+      const data = parsed.data || parsed;
+
+      if (typeof data !== 'object' || Array.isArray(data)) {
+        throw new Error('shape');
+      }
+
+      // Import replaces rather than merges: merging two exports would
+      // silently create duplicate students with different ids.
+      LocalDB.wipe();
+      LocalDB.restore(data);
+
+      await loadAll();
+      S.page = 'dashboard';
+      render();
+      toast('Imported ' + Object.keys(data).length + ' record(s).');
+    } catch (error) {
+      console.error(error);
+      toast('That file could not be read as a portal export.', true);
+    } finally {
+      e.target.value = '';
+    }
+  });
+
+  el('wipe').addEventListener('click', async () => {
+    const typed = prompt(
+      'This erases every student, payment, mark and register in this browser. ' +
+      'It cannot be undone.\n\nType ERASE to confirm.'
+    );
+
+    if (typed !== 'ERASE') return toast('Nothing was erased.');
+
+    LocalDB.wipe();
+    await loadAll();
+    S.page = 'setup';
+    render();
+    toast('Everything erased.');
+  });
+}
+
+/**
+ * Create the nine grade levels and every fee item for all three terms,
+ * straight from the published bill. Safe to run on an empty portal; it
+ * refuses if fees already exist rather than doubling them.
+ */
+/**
+ * Load the school's staff list. Safe to run on an empty portal; it matches
+ * on name so re-running updates a title rather than creating a duplicate.
+ */
+async function loadHoaStaff() {
+  const button = el('load-staff');
+  if (button) { button.disabled = true; button.textContent = 'Loading\u2026'; }
+
+  const staff = S.teachers.slice();
+  let added = 0, updated = 0;
+
+  HOA_STAFF.forEach((person) => {
+    const at = staff.findIndex((x) =>
+      x.name.trim().toLowerCase() === person.name.toLowerCase());
+
+    if (at >= 0) {
+      // Keep whatever contact details have already been entered.
+      staff[at] = Object.assign({}, staff[at], {
+        role: person.role, unit: person.unit, portalRole: person.portalRole,
+      });
+      updated++;
+    } else {
+      staff.push(Object.assign({ id: uid(), phone: '', email: '' }, person));
+      added++;
+    }
+  });
+
+  try {
+    if (!(await save('config/teachers', { items: staff }))) return;
+    S.teachers = staff;
+    render();
+    toast(added + ' added, ' + updated + ' updated.');
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Load the staff list'; }
+  }
+}
+
+async function loadHoaFees() {
+  if (S.feeItems.length) {
+    return toast('Fees already exist. Clear them first, or edit by hand.', true);
+  }
+
+  const button = el('load-fees');
+  if (button) { button.disabled = true; button.textContent = 'Loading…'; }
+
+  // Reuse any class of the same name that is already set up.
+  const classes = S.classes.slice();
+  const findOrAdd = (name) => {
+    const existing = classes.find((c) => c.name === name);
+    if (existing) return existing;
+    const created = { id: uid(), name };
+    classes.push(created);
+    return created;
+  };
+
+  const items = [];
+
+  HOA_FEES.forEach((level) => {
+    const klass = findOrAdd(level.level);
+
+    ['1', '2', '3'].forEach((t) => {
+      const termName = S.config.terms[Number(t) - 1];
+      if (!termName) return;
+
+      Object.entries(level.terms[t]).forEach(([name, amount]) => {
+        items.push({
+          id: uid(),
+          classId: klass.id,
+          term: termName,
+          name,
+          amount,
+          newOnly: level.newOnly.includes(name),
+        });
+      });
+    });
+  });
+
+  try {
+    await save('config/classes', { items: classes });
+    await save('config/fees', { items });
+
+    S.classes = classes;
+    S.feeItems = items;
+
+    render();
+    toast(items.length + ' fee items across ' + HOA_FEES.length + ' levels loaded.');
+  } catch (error) {
+    console.error(error);
+    toast('Could not save the fee structure.', true);
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Load the 2026/2027 fees'; }
+  }
+}
+
+/* --------------------------- teachers --------------------------- */
+
+function teacherName(id) {
+  return (S.teachers.find((t) => t.id === id) || {}).name || '—';
+}
+
+function assignmentsFor(teacherId) {
+  return S.assignments.filter((a) => a.teacherId === teacherId);
+}
+
+/** Who teaches this class/subject pair — the row-level rule, in one place. */
+function teachersOf(classId, subjectId) {
+  return S.assignments
+    .filter((a) => a.classId === classId && a.subjectId === subjectId)
+    .map((a) => teacherName(a.teacherId));
+}
+
+function paintTeachers() {
+  const writable = canWrite('teachers');
+  const ready = S.classes.length && S.subjects.length;
+
+  const rows = (t) => {
+    const mine = assignmentsFor(t.id);
+    const homeroom = S.classes.filter((c) => c.classTeacherId === t.id);
+
+    return '<tr><td>' + esc(t.name) +
+      (t.role ? '<br><span class="hint">' + esc(t.role) + '</span>' : '') + '</td>' +
+      '<td>' + (t.portalRole
+        ? '<span class="tag' + (['admin','principal'].includes(t.portalRole) ? ' ok' : '') + '">' +
+          esc(PORTAL_ROLE_LABEL[t.portalRole] || t.portalRole) + '</span>'
+        : '<span class="hint">not set</span>') + '</td>' +
+      '<td>' + esc(t.phone || '\u2014') +
+        (t.email ? '<br><span class="hint">' + esc(t.email) + '</span>' : '') + '</td>' +
+      '<td>' + (homeroom.length
+        ? homeroom.map((c) => esc(c.name)).join(', ')
+        : '<span class="hint">\u2014</span>') + '</td>' +
+      '<td>' + (mine.length
+        ? mine.map((a) => '<span class="tag" style="margin:1px">' +
+            esc(subjectName(a.subjectId)) + ' \u00b7 ' + esc(className(a.classId)) +
+            '</span>').join(' ')
+        : '<span class="hint">nothing assigned</span>') + '</td>' +
+      (writable ? '<td class="num" style="white-space:nowrap">' +
+        (ready ? '<button class="btn ghost small" data-assign="' + t.id + '">Assign</button> ' : '') +
+        '<button class="btn ghost small" data-editteacher="' + t.id + '">Edit</button></td>' : '') +
+      '</tr>';
+  };
+
+  // Grouped by unit, because a list of twelve names in no order tells the
+  // office nothing about who does what.
+  const units = STAFF_UNITS
+    .map((u) => ({ unit: u, people: S.teachers.filter((t) => (t.unit || 'Teaching staff') === u) }))
+    .filter((g) => g.people.length);
+
+  const ungrouped = S.teachers.filter((t) =>
+    t.unit && !STAFF_UNITS.includes(t.unit));
+  if (ungrouped.length) units.push({ unit: 'Other', people: ungrouped });
+
+  el('view').innerHTML =
+    '<div class="head"><div><h1>Staff</h1>' +
+    '<p>' + S.teachers.length + ' on staff \u00b7 ' + S.assignments.length +
+    ' class assignments</p></div>' +
+    (writable ? '<button class="btn" id="add-teacher">Add a member of staff</button>' : '') +
+    '</div>' +
+
+    (S.teachers.length === 0
+      ? '<div class="empty"><p>No staff added yet.</p>' +
+        (writable ? '<button class="btn" id="add-teacher-2">Add the first</button>' : '') +
+        '</div>'
+      : units.map((g) =>
+          '<div class="card" style="padding:0;margin-bottom:18px">' +
+          '<h2 style="padding:16px 20px;margin:0;border-bottom:1px solid var(--line)">' +
+            esc(g.unit) + ' <span class="hint" style="font-weight:400">' +
+            g.people.length + '</span></h2>' +
+          '<div class="scroll"><table><thead><tr>' +
+          '<th>Name</th><th>Portal access</th><th>Contact</th>' +
+          '<th>Class teacher of</th><th>Teaches</th>' + (writable ? '<th></th>' : '') +
+          '</tr></thead><tbody>' +
+          g.people.map(rows).join('') +
+          '</tbody></table></div></div>').join('')) +
+
+    (ready
+      ? '<div class="card"><h2>Why assignments matter</h2>' +
+        '<p class="hint" style="margin-top:0">A teacher may only enter marks for the ' +
+        'class and subject pairs listed against their name. This is not something ' +
+        'roles can express \u2014 "teacher" is a role, but "may enter Grade 4 Mathematics ' +
+        'marks" is a fact about a row. Leave a teacher unassigned and they can open ' +
+        'nothing.</p>' +
+        '<p class="hint">Unassigned class/subject pairs: ' + unassignedCount() + '</p>' +
+        '</div>'
+      : '<div class="card"><h2>Next step</h2>' +
+        '<p class="hint" style="margin-top:0">Add your classes and subjects under ' +
+        'Setup, then come back here to assign each teacher the class and subject ' +
+        'pairs they may enter marks for.</p></div>');
+
+  ['add-teacher', 'add-teacher-2'].forEach((id) => {
+    const b = el(id);
+    if (b) b.addEventListener('click', () => teacherForm(null));
+  });
+
+  el('view').querySelectorAll('[data-editteacher]').forEach((b) => {
+    b.addEventListener('click', () =>
+      teacherForm(S.teachers.find((t) => t.id === b.dataset.editteacher)));
+  });
+
+  el('view').querySelectorAll('[data-assign]').forEach((b) => {
+    b.addEventListener('click', () => assignForm(b.dataset.assign));
+  });
+}
+
+/** Pairs nobody is assigned to teach — the gap that bites at marks time. */
+function unassignedCount() {
+  let gaps = 0;
+  S.classes.forEach((c) => {
+    S.subjects.forEach((sub) => {
+      if (!S.assignments.some((a) => a.classId === c.id && a.subjectId === sub.id)) gaps++;
+    });
+  });
+  return gaps;
+}
+
+function teacherForm(existing) {
+  if (!guard('teachers')) return;
+  const t = existing || {};
+  const isNew = !existing;
+
+  openModal(
+    '<h3>' + (isNew ? 'Add a teacher' : 'Edit ' + esc(t.name)) + '</h3>' +
+    '<label class="f"><span>Full name</span><input type="text" id="t-name" value="' +
+      esc(t.name || '') + '"></label>' +
+    '<div class="row2">' +
+      '<label class="f"><span>Phone</span><input type="text" id="t-phone" value="' +
+        esc(t.phone || '') + '"></label>' +
+      '<label class="f"><span>Email</span><input type="text" id="t-email" value="' +
+        esc(t.email || '') + '"></label>' +
+    '</div>' +
+    '<label class="f"><span>Role or title</span><input type="text" id="t-role" value="' +
+      esc(t.role || '') + '" placeholder="Head of Science Department"></label>' +
+    '<div class="row2">' +
+      '<label class="f"><span>Part of the school</span><select id="t-unit">' +
+        STAFF_UNITS.map((u) => '<option' +
+          ((t.unit || 'Teaching staff') === u ? ' selected' : '') + '>' + u + '</option>').join('') +
+      '</select></label>' +
+      '<label class="f"><span>Portal access</span><select id="t-portalrole">' +
+        Object.entries(PORTAL_ROLE_LABEL).map(([k, label]) => '<option value="' + k + '"' +
+          ((t.portalRole || 'teacher') === k ? ' selected' : '') + '>' + label + '</option>').join('') +
+      '</select></label>' +
+    '</div>' +
+    '<label class="f"><span>Class teacher of</span><select id="t-homeroom">' +
+      '<option value="">Not a class teacher</option>' +
+      S.classes.map((c) => '<option value="' + c.id + '"' +
+        (c.classTeacherId === t.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') +
+    '</select></label>' +
+    '<p class="hint">The class teacher takes the daily register. Subject teaching ' +
+    'is assigned separately.</p>' +
+    '<p class="hint">Portal access records which account this person should be ' +
+    'issued once real logins exist. It grants nothing in this prototype.</p>' +
+    '<div class="foot">' +
+      (isNew ? '' : '<button class="btn ghost" id="t-remove" style="margin-right:auto">Remove</button>') +
+      '<button class="btn ghost" onclick="closeModal()">Cancel</button>' +
+      '<button class="btn" id="t-save">' + (isNew ? 'Add teacher' : 'Save') + '</button>' +
+    '</div>',
+    () => {
+      el('t-save').addEventListener('click', async () => {
+        const name = el('t-name').value.trim();
+        if (!name) return toast('A name is required.', true);
+
+        const id = t.id || uid();
+        const record = {
+          id, name,
+          phone: el('t-phone').value.trim(),
+          email: el('t-email').value.trim(),
+          role: el('t-role').value.trim(),
+          unit: el('t-unit').value,
+          // A note for whoever issues the real logins, not a live permission.
+          portalRole: el('t-portalrole').value,
+        };
+
+        const teachers = S.teachers.slice();
+        const at = teachers.findIndex((x) => x.id === id);
+        if (at >= 0) teachers[at] = record; else teachers.push(record);
+
+        // Homeroom lives on the class, not the teacher: one class has one
+        // class teacher, and storing it here would let two classes disagree.
+        const homeroom = el('t-homeroom').value;
+        const classes = S.classes.map((c) => {
+          const copy = Object.assign({}, c);
+          if (copy.classTeacherId === id) delete copy.classTeacherId;
+          if (copy.id === homeroom) copy.classTeacherId = id;
+          return copy;
+        });
+
+        if (!(await save('config/teachers', { items: teachers }))) return;
+        if (!(await save('config/classes', { items: classes }))) return;
+
+        S.teachers = teachers;
+        S.classes = classes;
+        closeModal();
+        render();
+        toast(isNew ? name + ' added.' : 'Changes saved.');
+      });
+
+      const remove = el('t-remove');
+      if (remove) remove.addEventListener('click', async () => {
+        const mine = assignmentsFor(t.id);
+        if (mine.length && !confirm(
+          t.name + ' has ' + mine.length + ' assignment(s). Removing them ' +
+          'also removes those assignments. Continue?'
+        )) return;
+
+        const teachers = S.teachers.filter((x) => x.id !== t.id);
+        const assignments = S.assignments.filter((a) => a.teacherId !== t.id);
+        const classes = S.classes.map((c) => {
+          const copy = Object.assign({}, c);
+          if (copy.classTeacherId === t.id) delete copy.classTeacherId;
+          return copy;
+        });
+
+        if (!(await save('config/teachers', { items: teachers }))) return;
+        await save('config/assignments', { items: assignments });
+        await save('config/classes', { items: classes });
+
+        S.teachers = teachers;
+        S.assignments = assignments;
+        S.classes = classes;
+        closeModal();
+        render();
+        toast(t.name + ' removed. Marks they entered are unchanged.');
+      });
+    }
+  );
+}
+
+function assignForm(teacherId) {
+  if (!guard('teachers')) return;
+  const teacher = S.teachers.find((t) => t.id === teacherId);
+  if (!teacher) return;
+
+  const draw = () => {
+    const mine = assignmentsFor(teacherId);
+
+    openModal(
+      '<h3>' + esc(teacher.name) + '</h3>' +
+      '<p class="hint" style="margin-top:0">Class and subject pairs this teacher ' +
+      'may enter marks for.</p>' +
+
+      (mine.length
+        ? '<div class="scroll"><table><tbody>' +
+          mine.map((a) =>
+            '<tr><td>' + esc(className(a.classId)) + '</td>' +
+            '<td>' + esc(subjectName(a.subjectId)) + '</td>' +
+            '<td class="num"><button class="btn ghost small" data-unassign="' + a.id +
+            '">Remove</button></td></tr>').join('') +
+          '</tbody></table></div>'
+        : '<p class="hint">Nothing assigned yet, so this teacher can open no mark sheets.</p>') +
+
+      '<div style="border-top:1px solid var(--line);margin-top:16px;padding-top:16px">' +
+        '<div class="row2">' +
+          '<label class="f"><span>Class</span><select id="a-class">' +
+            S.classes.map((c) => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('') +
+          '</select></label>' +
+          '<label class="f"><span>Subject</span><select id="a-subject">' +
+            S.subjects.map((x) => '<option value="' + x.id + '">' + esc(x.name) + '</option>').join('') +
+          '</select></label>' +
+        '</div>' +
+        '<button class="btn small" id="a-add">Add assignment</button>' +
+      '</div>' +
+      '<div class="foot"><button class="btn ghost" onclick="closeModal()">Done</button></div>',
+      () => {
+        el('a-add').addEventListener('click', async () => {
+          const classId = el('a-class').value;
+          const subjectId = el('a-subject').value;
+
+          const clash = S.assignments.find((a) =>
+            a.teacherId === teacherId && a.classId === classId && a.subjectId === subjectId);
+          if (clash) return toast('Already assigned.', true);
+
+          const items = S.assignments.concat([{ id: uid(), teacherId, classId, subjectId }]);
+          if (!(await save('config/assignments', { items }))) return;
+          S.assignments = items;
+          draw();
+          toast('Assigned.');
+        });
+
+        el('modal').querySelectorAll('[data-unassign]').forEach((b) => {
+          b.addEventListener('click', async () => {
+            const items = S.assignments.filter((a) => a.id !== b.dataset.unassign);
+            if (!(await save('config/assignments', { items }))) return;
+            S.assignments = items;
+            draw();
+            toast('Assignment removed.');
+          });
+        });
+      }
+    );
+  };
+
+  draw();
+}
+
+/* --------------------------- reports --------------------------- */
+
+/**
+ * Scores and attendance are stored one document per class/subject/term and
+ * one per class/day, which is right for editing but useless for analytics.
+ * So the reports page pulls both collections once and works in memory.
+ * At school scale that is a few hundred documents; if the school ever grows
+ * past a few thousand, this becomes a server-side aggregate instead.
+ */
+async function loadAnalytics() {
+  try {
+    const [scoreSnap, attSnap] = await Promise.all([
+      db.collection('scores').get(),
+      db.collection('attendance').get(),
+    ]);
+
+    S.analytics = {
+      scores: scoreSnap.docs.map((d) => ({ id: d.id, marks: d.data().marks || {} })),
+      attendance: attSnap.docs.map((d) => ({ id: d.id, states: d.data().states || {} })),
+    };
+  } catch (error) {
+    console.error(error);
+    S.analytics = { scores: [], attendance: [] };
+    toast('Could not load the analytics data.', true);
+  }
+
+  if (S.page === 'reports') render();
+}
+
+/** Every mark for a student, as { subjectId, term, percent }. */
+function studentMarks(studentId) {
+  if (!S.analytics) return [];
+
+  const out = [];
+  S.analytics.scores.forEach((doc) => {
+    const entry = doc.marks[studentId];
+    if (!entry) return;
+
+    const [classId, subjectId, termKey] = doc.id.split('_');
+    const ca = Number(entry.ca ?? NaN);
+    const mid = Number(entry.mid ?? NaN);
+    const fin = Number(entry.final ?? NaN);
+    if ([ca, mid, fin].every((v) => isNaN(v))) return;
+
+    const weightSeen = (isNaN(ca) ? 0 : WEIGHTS.ca) + (isNaN(mid) ? 0 : WEIGHTS.mid)
+      + (isNaN(fin) ? 0 : WEIGHTS.final);
+    const weighted = (isNaN(ca) ? 0 : ca * WEIGHTS.ca) + (isNaN(mid) ? 0 : mid * WEIGHTS.mid)
+      + (isNaN(fin) ? 0 : fin * WEIGHTS.final);
+
+    // Scale to what has been marked, so a student with only the CA entered
+    // is not shown at a third of their real standing.
+    out.push({
+      classId, subjectId, termKey,
+      percent: weightSeen ? Math.round((weighted / weightSeen) * 10) / 10 : null,
+      complete: weightSeen === 100,
+    });
+  });
+  return out;
+}
+
+/** Attendance tally for a student: present, late, absent, excused. */
+function studentAttendance(studentId) {
+  const tally = { P: 0, A: 0, L: 0, E: 0 };
+  if (!S.analytics) return tally;
+
+  S.analytics.attendance.forEach((doc) => {
+    const state = doc.states[studentId];
+    if (state && tally[state] !== undefined) tally[state]++;
+  });
+  return tally;
+}
+
+function attendanceRate(tally) {
+  const counted = tally.P + tally.A + tally.L;
+  return counted ? Math.round(((tally.P + tally.L) / counted) * 1000) / 10 : null;
+}
+
+const REPORT_TABS = [
+  { id: 'collection',  label: 'Fee collection' },
+  { id: 'aging',       label: 'Arrears' },
+  { id: 'attendance',  label: 'Attendance' },
+  { id: 'performance', label: 'Class performance' },
+  { id: 'teachers',    label: 'Teacher activity' },
+];
+
+function paintReports() {
+  const term = S.config.currentTerm;
+
+  el('view').innerHTML =
+    '<div class="head"><div><h1>Reports</h1>' +
+    '<p>' + esc(S.config.year) + ' · ' + esc(term) + '</p></div>' +
+    '<button class="btn ghost" id="refresh-report">Refresh</button>' +
+    '<button class="btn ghost" id="print-report">Print this report</button>' +
+    '</div>' +
+
+    '<div class="bar" id="report-tabs">' +
+    REPORT_TABS.map((t) => '<button class="btn ' +
+      (S.reportTab === t.id ? '' : 'ghost') + ' small" data-tab="' + t.id + '">' +
+      t.label + '</button>').join('') +
+    '</div>' +
+
+    '<div id="report-body">' + reportBody(term) + '</div>';
+
+  el('report-tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-tab]');
+    if (b) { S.reportTab = b.dataset.tab; render(); }
+  });
+
+  el('print-report').addEventListener('click', () => window.print());
+
+  el('refresh-report').addEventListener('click', async () => {
+    S.analytics = null;
+    render();
+    await loadAnalytics();
+    toast('Reloaded marks and registers.');
+  });
+
+  const needsAnalytics = ['attendance', 'performance', 'teachers'].includes(S.reportTab);
+  if (needsAnalytics && !S.analytics) loadAnalytics();
+}
+
+function reportBody(term) {
+  if (S.reportTab === 'collection') return reportCollection(term);
+  if (S.reportTab === 'aging') return reportAging();
+  if (!S.analytics) return '<div class="empty"><p>Loading marks and registers…</p></div>';
+  if (S.reportTab === 'attendance') return reportAttendance();
+  if (S.reportTab === 'performance') return reportPerformance();
+  return reportTeachers();
+}
+
+/* ---- fee collection analytics ---- */
+function reportCollection(term) {
+  const rows = S.classes.map((c) => {
+    const inClass = studentsIn(c.id);
+    // Named `charged`, not `billed`: a local called `billed` shadows the
+    // billed() function and every call in this loop throws.
+    let charged = 0, paid = 0;
+
+    inClass.forEach((s) => {
+      charged += billed(s, term);
+      paid += paidBy(s.id, term);
+    });
+
+    return {
+      name: c.name,
+      count: inClass.length,
+      billed: charged, paid,
+      owing: Math.max(0, charged - paid),
+      rate: charged ? Math.round((paid / charged) * 100) : null,
+    };
+  }).filter((r) => r.count > 0);
+
+  const total = rows.reduce((a, r) => ({
+    billed: a.billed + r.billed, paid: a.paid + r.paid, owing: a.owing + r.owing,
+    count: a.count + r.count,
+  }), { billed: 0, paid: 0, owing: 0, count: 0 });
+
+  // Payment method mix: tells the bursar what to reconcile against.
+  const methods = {};
+  S.payments.filter((p) => p.term === term).forEach((p) => {
+    methods[p.method] = (methods[p.method] || 0) + Number(p.amount || 0);
+  });
+
+  return '<div class="stats">' +
+      stat('Billed', money(total.billed), total.count + ' students') +
+      stat('Collected', money(total.paid),
+        (total.billed ? Math.round((total.paid / total.billed) * 100) : 0) + '% of billing') +
+      stat('Outstanding', money(total.owing), '') +
+      stat('Receipts issued', S.payments.filter((p) => p.term === term).length, esc(term)) +
+    '</div>' +
+
+    '<div class="card" style="margin-top:18px;padding:0"><div class="scroll">' +
+    '<table><thead><tr><th>Class</th><th class="num">Students</th>' +
+    '<th class="num">Billed</th><th class="num">Collected</th>' +
+    '<th class="num">Outstanding</th><th class="num">Rate</th></tr></thead><tbody>' +
+    rows.map((r) =>
+      '<tr><td>' + esc(r.name) + '</td><td class="num">' + r.count + '</td>' +
+      '<td class="num">' + money(r.billed) + '</td>' +
+      '<td class="num">' + money(r.paid) + '</td>' +
+      '<td class="num">' + money(r.owing) + '</td>' +
+      '<td class="num">' + (r.rate === null ? '—' :
+        '<span class="tag ' + (r.rate >= 80 ? 'ok' : r.rate >= 50 ? 'warn' : 'bad') + '">' +
+        r.rate + '%</span>') + '</td></tr>').join('') +
+    '</tbody></table></div></div>' +
+
+    (Object.keys(methods).length
+      ? '<div class="card" style="margin-top:18px"><h2>How money came in</h2>' +
+        '<div class="scroll"><table><tbody>' +
+        Object.entries(methods).sort((a, b) => b[1] - a[1]).map(([m, v]) =>
+          '<tr><td>' + esc(m) + '</td><td class="num">' + money(v) + '</td>' +
+          '<td class="num hint">' + Math.round((v / total.paid) * 100) + '%</td></tr>').join('') +
+        '</tbody></table></div>' +
+        '<p class="hint">Reconcile the bank and mobile money figures against the ' +
+        'statements before closing the term.</p></div>'
+      : '');
+}
+
+/* ---- arrears, oldest first ---- */
+function reportAging() {
+  const buckets = S.config.terms.map((t) => ({ term: t, owing: 0, students: 0 }));
+
+  activeStudents().forEach((s) => {
+    S.config.terms.forEach((t, i) => {
+      const due = billed(s, t) - paidBy(s.id, t);
+      if (due > 0) { buckets[i].owing += due; buckets[i].students++; }
+    });
+  });
+
+  const debtors = activeStudents().map((s) => {
+    const total = S.config.terms.reduce((a, t) =>
+      a + Math.max(0, billed(s, t) - paidBy(s.id, t)), 0);
+    return { s, total };
+  }).filter((r) => r.total > 0).sort((a, b) => b.total - a.total);
+
+  return '<div class="card"><h2>Outstanding by term</h2><div class="scroll">' +
+    '<table><thead><tr><th>Term</th><th class="num">Students owing</th>' +
+    '<th class="num">Amount</th></tr></thead><tbody>' +
+    buckets.map((b) =>
+      '<tr><td>' + esc(b.term) + '</td><td class="num">' + b.students + '</td>' +
+      '<td class="num">' + money(b.owing) + '</td></tr>').join('') +
+    '</tbody></table></div>' +
+    '<p class="hint">A balance still showing against Term 1 in Term 3 is the ' +
+    'figure to act on — it has survived two reminder cycles.</p></div>' +
+
+    '<div class="card" style="margin-top:18px;padding:0"><div class="scroll">' +
+    '<table><thead><tr><th>Student</th><th>Class</th>' +
+    '<th class="num">Total owing</th></tr></thead><tbody>' +
+    (debtors.length
+      ? debtors.slice(0, 60).map((r) =>
+          '<tr><td><button class="btn ghost small" data-student="' + r.s.id + '">' +
+          esc(r.s.name) + '</button><br><span class="hint">' + esc(r.s.adm) + '</span></td>' +
+          '<td>' + esc(className(r.s.classId)) + '</td>' +
+          '<td class="num"><span class="tag bad">' + money(r.total) + '</span></td></tr>').join('')
+      : '<tr><td colspan="3" class="hint" style="padding:20px">Nothing outstanding.</td></tr>') +
+    '</tbody></table></div></div>';
+}
+
+/* ---- attendance trends ---- */
+function reportAttendance() {
+  const classRows = S.classes.map((c) => {
+    const inClass = studentsIn(c.id);
+    const tally = { P: 0, A: 0, L: 0, E: 0 };
+
+    inClass.forEach((s) => {
+      const t = studentAttendance(s.id);
+      Object.keys(tally).forEach((k) => { tally[k] += t[k]; });
+    });
+
+    return { name: c.name, count: inClass.length, tally, rate: attendanceRate(tally) };
+  }).filter((r) => r.count > 0);
+
+  const worst = activeStudents().map((s) => {
+    const tally = studentAttendance(s.id);
+    return { s, tally, rate: attendanceRate(tally), absent: tally.A };
+  }).filter((r) => r.absent > 0).sort((a, b) => b.absent - a.absent).slice(0, 20);
+
+  // Registers taken per day, which shows whether marking is actually happening.
+  const byDate = {};
+  S.analytics.attendance.forEach((doc) => {
+    const date = doc.id.split('_').slice(1).join('_');
+    byDate[date] = (byDate[date] || 0) + 1;
+  });
+  const days = Object.keys(byDate).sort().slice(-14);
+
+  return '<div class="card"><h2>Attendance by class</h2><div class="scroll">' +
+    '<table><thead><tr><th>Class</th><th class="num">Present</th><th class="num">Late</th>' +
+    '<th class="num">Absent</th><th class="num">Excused</th><th class="num">Rate</th>' +
+    '</tr></thead><tbody>' +
+    (classRows.length ? classRows.map((r) =>
+      '<tr><td>' + esc(r.name) + '</td>' +
+      '<td class="num">' + r.tally.P + '</td><td class="num">' + r.tally.L + '</td>' +
+      '<td class="num">' + r.tally.A + '</td><td class="num">' + r.tally.E + '</td>' +
+      '<td class="num">' + (r.rate === null ? '<span class="hint">not marked</span>' :
+        '<span class="tag ' + (r.rate >= 90 ? 'ok' : r.rate >= 75 ? 'warn' : 'bad') + '">' +
+        r.rate + '%</span>') + '</td></tr>').join('')
+      : '<tr><td colspan="6" class="hint" style="padding:20px">No registers taken yet.</td></tr>') +
+    '</tbody></table></div>' +
+    '<p class="hint">Excused absences are left out of the rate entirely — they are ' +
+    'neither attendance nor a mark against the student.</p></div>' +
+
+    (days.length ? '<div class="card" style="margin-top:18px"><h2>Registers taken, last 14 days</h2>' +
+      '<div class="scroll"><table><tbody>' +
+      days.map((d) => '<tr><td>' + esc(d) + '</td><td class="num">' + byDate[d] +
+        ' of ' + S.classes.length + ' classes</td>' +
+        '<td class="num">' + (byDate[d] < S.classes.length
+          ? '<span class="tag warn">incomplete</span>' : '<span class="tag ok">complete</span>') +
+        '</td></tr>').join('') +
+      '</tbody></table></div>' +
+      '<p class="hint">A day short of registers cannot be reconstructed later. ' +
+      'This is the list to chase the same afternoon.</p></div>' : '') +
+
+    (worst.length ? '<div class="card" style="margin-top:18px;padding:0"><div class="scroll">' +
+      '<table><thead><tr><th>Most days absent</th><th>Class</th>' +
+      '<th class="num">Absent</th><th class="num">Rate</th></tr></thead><tbody>' +
+      worst.map((r) =>
+        '<tr><td><button class="btn ghost small" data-student="' + r.s.id + '">' +
+        esc(r.s.name) + '</button></td>' +
+        '<td>' + esc(className(r.s.classId)) + '</td>' +
+        '<td class="num">' + r.absent + '</td>' +
+        '<td class="num">' + (r.rate === null ? '—' : r.rate + '%') + '</td></tr>').join('') +
+      '</tbody></table></div></div>' : '');
+}
+
+/* ---- class and subject performance ---- */
+function reportPerformance() {
+  const rows = [];
+
+  S.classes.forEach((c) => {
+    S.subjects.forEach((sub) => {
+      const marks = [];
+      studentsIn(c.id).forEach((s) => {
+        studentMarks(s.id)
+          .filter((m) => m.classId === c.id && m.subjectId === sub.id && m.percent !== null)
+          .forEach((m) => marks.push(m.percent));
+      });
+
+      if (!marks.length) return;
+
+      const avg = marks.reduce((a, b) => a + b, 0) / marks.length;
+      rows.push({
+        klass: c.name,
+        subject: sub.name,
+        marked: marks.length,
+        average: Math.round(avg * 10) / 10,
+        passing: Math.round((marks.filter((m) => m >= 50).length / marks.length) * 100),
+        top: Math.max(...marks),
+        low: Math.min(...marks),
+      });
+    });
+  });
+
+  rows.sort((a, b) => a.average - b.average);
+
+  const classAvg = {};
+  rows.forEach((r) => {
+    classAvg[r.klass] = classAvg[r.klass] || [];
+    classAvg[r.klass].push(r.average);
+  });
+
+  return (rows.length === 0
+    ? '<div class="empty"><p>No marks entered yet, so there is nothing to compare.</p></div>'
+    : '<div class="card"><h2>Average by class</h2><div class="scroll">' +
+      '<table><thead><tr><th>Class</th><th class="num">Subjects marked</th>' +
+      '<th class="num">Average</th></tr></thead><tbody>' +
+      Object.entries(classAvg).map(([k, list]) => {
+        const avg = Math.round((list.reduce((a, b) => a + b, 0) / list.length) * 10) / 10;
+        return '<tr><td>' + esc(k) + '</td><td class="num">' + list.length + '</td>' +
+          '<td class="num"><span class="tag ' + (avg >= 60 ? 'ok' : avg >= 50 ? 'warn' : 'bad') +
+          '">' + avg + '%</span></td></tr>';
+      }).join('') +
+      '</tbody></table></div></div>' +
+
+      '<div class="card" style="margin-top:18px;padding:0"><div class="scroll">' +
+      '<table><thead><tr><th>Class</th><th>Subject</th><th class="num">Marked</th>' +
+      '<th class="num">Average</th><th class="num">Passing</th>' +
+      '<th class="num">Range</th><th>Taught by</th></tr></thead><tbody>' +
+      rows.map((r) => {
+        const klass = S.classes.find((c) => c.name === r.klass);
+        const sub = S.subjects.find((x) => x.name === r.subject);
+        const who = klass && sub ? teachersOf(klass.id, sub.id) : [];
+
+        return '<tr><td>' + esc(r.klass) + '</td><td>' + esc(r.subject) + '</td>' +
+          '<td class="num">' + r.marked + '</td>' +
+          '<td class="num">' + r.average + '%</td>' +
+          '<td class="num"><span class="tag ' + (r.passing >= 75 ? 'ok' :
+            r.passing >= 50 ? 'warn' : 'bad') + '">' + r.passing + '%</span></td>' +
+          '<td class="num hint">' + r.low + '–' + r.top + '</td>' +
+          '<td class="hint">' + (who.length ? esc(who.join(', ')) : 'unassigned') + '</td></tr>';
+      }).join('') +
+      '</tbody></table></div></div>' +
+
+      '<p class="hint" style="margin-top:12px">Sorted worst average first, which is ' +
+      'where a head teacher should look. A low average with a high pass rate means ' +
+      'a hard paper; a high average with a low pass rate means a split class.</p>');
+}
+
+/* ---- teacher activity ---- */
+function reportTeachers() {
+  const rows = S.teachers.map((t) => {
+    const mine = assignmentsFor(t.id);
+    let entered = 0, expected = 0;
+
+    mine.forEach((a) => {
+      const roll = studentsIn(a.classId);
+      expected += roll.length;
+      roll.forEach((s) => {
+        if (studentMarks(s.id).some((m) =>
+          m.classId === a.classId && m.subjectId === a.subjectId)) entered++;
+      });
+    });
+
+    const homeroom = S.classes.filter((c) => c.classTeacherId === t.id);
+    let registers = 0;
+    homeroom.forEach((c) => {
+      registers += S.analytics.attendance.filter((d) => d.id.startsWith(c.id + '_')).length;
+    });
+
+    return {
+      name: t.name,
+      assignments: mine.length,
+      entered, expected,
+      coverage: expected ? Math.round((entered / expected) * 100) : null,
+      homeroom: homeroom.map((c) => c.name).join(', '),
+      registers,
+    };
+  });
+
+  return '<div class="card" style="padding:0"><div class="scroll">' +
+    '<table><thead><tr><th>Teacher</th><th class="num">Assignments</th>' +
+    '<th class="num">Marks entered</th><th class="num">Coverage</th>' +
+    '<th>Class teacher of</th><th class="num">Registers</th></tr></thead><tbody>' +
+    (rows.length ? rows.map((r) =>
+      '<tr><td>' + esc(r.name) + '</td>' +
+      '<td class="num">' + r.assignments + '</td>' +
+      '<td class="num">' + r.entered + ' of ' + r.expected + '</td>' +
+      '<td class="num">' + (r.coverage === null ? '<span class="hint">—</span>' :
+        '<span class="tag ' + (r.coverage >= 90 ? 'ok' : r.coverage >= 50 ? 'warn' : 'bad') +
+        '">' + r.coverage + '%</span>') + '</td>' +
+      '<td>' + (r.homeroom ? esc(r.homeroom) : '<span class="hint">—</span>') + '</td>' +
+      '<td class="num">' + r.registers + '</td></tr>').join('')
+      : '<tr><td colspan="6" class="hint" style="padding:20px">No teachers added yet.</td></tr>') +
+    '</tbody></table></div></div>' +
+
+    '<p class="hint" style="margin-top:12px">Coverage is how much of the marking a ' +
+    'teacher has actually done for the classes assigned to them. Read it as a ' +
+    'prompt before a deadline, not a verdict — an unmarked class may simply not ' +
+    'have sat the paper yet.</p>';
+}
+
+/* ------------------- student profile and report card ------------------- */
+
+/**
+ * One student, everything about them: profile, guardians, class history,
+ * fee statement, marks and attendance. Opened from any list in the portal,
+ * because "click the name" is what everyone tries first.
+ */
+async function openStudent(studentId) {
+  const s = S.students.find((x) => x.id === studentId);
+  if (!s) return;
+
+  S.openStudentId = studentId;
+
+  // Always re-read: opening a profile is rare enough that a fresh read costs
+  // nothing, and showing a stale "no marks yet" is expensive in trust.
+  openModal('<h3>' + esc(s.name) + '</h3><p class="hint">Loading records…</p>');
+  await loadAnalytics();
+
+  drawStudent();
+}
+
+function drawStudent() {
+  const s = S.students.find((x) => x.id === S.openStudentId);
+  if (!s) return closeModal();
+
+  const writable = canWrite('students');
+  const guardians = s.guardians || (s.guardian
+    ? [{ name: s.guardian, phone: s.phone || '', relationship: '', primary: true }]
+    : []);
+
+  // Fees across every term, not just the current one — arrears are the point.
+  const terms = S.config.terms.map((t) => ({
+    term: t,
+    billed: billed(s, t),
+    paid: paidBy(s.id, t),
+  }));
+  const owed = terms.reduce((a, t) => a + Math.max(0, t.billed - t.paid), 0);
+
+  const receipts = S.payments
+    .filter((p) => p.studentId === s.id)
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+  const marks = studentMarks(s.id);
+  const tally = studentAttendance(s.id);
+  const rate = attendanceRate(tally);
+
+  const bySubject = {};
+  marks.forEach((m) => {
+    if (m.percent === null) return;
+    bySubject[m.subjectId] = bySubject[m.subjectId] || [];
+    bySubject[m.subjectId].push(m.percent);
+  });
+
+  const subjectRows = Object.entries(bySubject).map(([subjectId, list]) => {
+    const avg = Math.round((list.reduce((a, b) => a + b, 0) / list.length) * 10) / 10;
+    const band = bandFor(avg);
+    return { name: subjectName(subjectId), avg, band };
+  }).sort((a, b) => b.avg - a.avg);
+
+  const overall = subjectRows.length
+    ? Math.round((subjectRows.reduce((a, r) => a + r.avg, 0) / subjectRows.length) * 10) / 10
+    : null;
+
+  openModal(
+    '<h3>' + esc(s.name) + '</h3>' +
+    '<p class="hint" style="margin-top:-8px">' + esc(s.adm) + ' · ' +
+      esc(className(s.classId)) + ' · ' +
+      (isNewStudent(s) ? 'billed as new' : 'returning student') + '</p>' +
+
+    /* ---- profile ---- */
+    '<table style="margin-top:14px"><tbody>' +
+      row('Date of birth', s.dob || '—') +
+      row('Gender', s.gender || '—') +
+      row('Status', s.status || '—') +
+      row('Admitted', s.admitted || '—') +
+    '</tbody></table>' +
+
+    /* ---- guardians ---- */
+    '<h4 style="margin:18px 0 6px;font-size:13px">Guardians</h4>' +
+    (guardians.length
+      ? '<table><tbody>' + guardians.map((g, i) =>
+          '<tr><td>' + esc(g.name) +
+          (g.relationship ? ' <span class="hint">' + esc(g.relationship) + '</span>' : '') +
+          (g.primary ? ' <span class="tag">primary</span>' : '') +
+          (g.feePayer ? ' <span class="tag">pays fees</span>' : '') + '</td>' +
+          '<td class="hint">' + esc(g.phone || '—') + '</td>' +
+          (writable ? '<td class="num"><button class="btn ghost small" data-delguardian="' +
+            i + '">Remove</button></td>' : '') + '</tr>').join('') +
+        '</tbody></table>'
+      : '<p class="hint">No guardian recorded. Fee reminders have nowhere to go.</p>') +
+    (writable ? '<button class="btn ghost small" id="add-guardian" style="margin-top:8px">' +
+      'Add a guardian</button>' : '') +
+
+    /* ---- fees ---- */
+    '<h4 style="margin:18px 0 6px;font-size:13px">Fees</h4>' +
+    '<div class="scroll"><table><thead><tr><th>Term</th><th class="num">Billed</th>' +
+    '<th class="num">Paid</th><th class="num">Balance</th></tr></thead><tbody>' +
+    terms.map((t) => {
+      const due = t.billed - t.paid;
+      return '<tr><td>' + esc(t.term) + '</td>' +
+        '<td class="num">' + money(t.billed) + '</td>' +
+        '<td class="num">' + money(t.paid) + '</td>' +
+        '<td class="num">' + (due > 0 ? '<span class="tag bad">' + money(due) + '</span>'
+          : due < 0 ? '<span class="tag warn">' + money(-due) + ' credit</span>'
+          : '<span class="tag ok">settled</span>') + '</td></tr>';
+    }).join('') +
+    '</tbody></table></div>' +
+    '<p class="hint">Owing across the year: <b>' + money(owed) + '</b></p>' +
+
+    (receipts.length
+      ? '<h4 style="margin:18px 0 6px;font-size:13px">Receipts</h4>' +
+        '<div class="scroll"><table><tbody>' +
+        receipts.slice(0, 8).map((p) =>
+          '<tr><td class="receipt">' + esc(p.receipt) + '</td>' +
+          '<td class="hint">' + esc(p.date) + '</td>' +
+          '<td class="hint">' + esc(p.method) + '</td>' +
+          '<td class="num">' + money(p.amount) + '</td>' +
+          '<td class="num"><button class="btn ghost small" data-printreceipt="' +
+            esc(p.id) + '">Print</button></td></tr>').join('') +
+        '</tbody></table></div>'
+      : '') +
+
+    /* ---- academics ---- */
+    '<h4 style="margin:18px 0 6px;font-size:13px">Marks</h4>' +
+    (subjectRows.length
+      ? '<div class="scroll"><table><thead><tr><th>Subject</th>' +
+        '<th class="num">Average</th><th>Grade</th></tr></thead><tbody>' +
+        subjectRows.map((r) =>
+          '<tr><td>' + esc(r.name) + '</td><td class="num">' + r.avg + '%</td>' +
+          '<td><span class="tag ' + (r.avg >= 50 ? 'ok' : 'bad') + '">' +
+          esc(r.band.letter) + '</span></td></tr>').join('') +
+        '</tbody></table></div>' +
+        '<p class="hint">Overall average <b>' + overall + '%</b> · grade <b>' +
+          esc(bandFor(overall).letter) + '</b></p>'
+      : '<p class="hint">No marks entered yet.</p>') +
+
+    '<h4 style="margin:18px 0 6px;font-size:13px">Attendance</h4>' +
+    (rate === null
+      ? '<p class="hint">Not yet marked in any register.</p>'
+      : '<p class="hint">' + rate + '% · present ' + tally.P + ', late ' + tally.L +
+        ', absent ' + tally.A + ', excused ' + tally.E + '</p>') +
+
+    '<div class="foot">' +
+      '<button class="btn ghost" id="print-card" style="margin-right:auto">Report card</button>' +
+      (writable ? '<button class="btn ghost" id="edit-student">Edit</button>' : '') +
+      '<button class="btn" onclick="closeModal()">Close</button>' +
+    '</div>',
+    () => {
+      const edit = el('edit-student');
+      if (edit) edit.addEventListener('click', () => studentForm(s));
+
+      el('print-card').addEventListener('click', async (e) => {
+        const b = e.currentTarget;
+        b.disabled = true;
+        b.textContent = 'Preparing…';
+        try { await printReportCard(s); }
+        finally { b.disabled = false; b.textContent = 'Report card'; }
+      });
+
+      el('modal').querySelectorAll('[data-printreceipt]').forEach((b) => {
+        b.addEventListener('click', () => {
+          const p = S.payments.find((x) => x.id === b.dataset.printreceipt);
+          if (p) printReceipt(p, s);
+        });
+      });
+
+      const add = el('add-guardian');
+      if (add) add.addEventListener('click', () => guardianForm(s));
+
+      el('modal').querySelectorAll('[data-delguardian]').forEach((b) => {
+        b.addEventListener('click', async () => {
+          const list = (s.guardians || []).slice();
+          list.splice(Number(b.dataset.delguardian), 1);
+          const body = Object.assign({}, s, { guardians: list });
+          delete body.id;
+          if (!(await save('students/' + s.id, body))) return;
+          Object.assign(s, { guardians: list });
+          drawStudent();
+          toast('Guardian removed.');
+        });
+      });
+    }
+  );
+}
+
+function row(label, value) {
+  return '<tr><td class="hint" style="width:40%">' + esc(label) + '</td><td>' +
+    esc(value) + '</td></tr>';
+}
+
+function guardianForm(s) {
+  if (!guard('students')) return;
+
+  openModal(
+    '<h3>Add a guardian</h3>' +
+    '<p class="hint" style="margin-top:-8px">for ' + esc(s.name) + '</p>' +
+    '<label class="f"><span>Full name</span><input type="text" id="g-name"></label>' +
+    '<div class="row2">' +
+      '<label class="f"><span>Relationship</span><input type="text" id="g-rel" ' +
+        'placeholder="Father, Aunt, Sponsor"></label>' +
+      '<label class="f"><span>Phone</span><input type="text" id="g-phone"></label>' +
+    '</div>' +
+    '<label class="check"><input type="checkbox" id="g-primary" checked> ' +
+      'Primary contact</label>' +
+    '<label class="check"><input type="checkbox" id="g-fees" checked> ' +
+      'Receives fee reminders</label>' +
+    '<p class="hint">Siblings can share a guardian — add the same phone number ' +
+    'to each child and the office will see the connection.</p>' +
+    '<div class="foot">' +
+      '<button class="btn ghost" id="g-cancel">Back</button>' +
+      '<button class="btn" id="g-save">Add guardian</button>' +
+    '</div>',
+    () => {
+      el('g-cancel').addEventListener('click', drawStudent);
+
+      el('g-save').addEventListener('click', async () => {
+        const name = el('g-name').value.trim();
+        if (!name) return toast('A name is required.', true);
+
+        const entry = {
+          name,
+          relationship: el('g-rel').value.trim(),
+          phone: el('g-phone').value.trim(),
+          primary: el('g-primary').checked,
+          feePayer: el('g-fees').checked,
+        };
+
+        const list = (s.guardians || []).concat([entry]);
+        const body = Object.assign({}, s, { guardians: list });
+        delete body.id;
+
+        if (!(await save('students/' + s.id, body))) return;
+        Object.assign(s, { guardians: list });
+        drawStudent();
+        toast(name + ' added.');
+      });
+    }
+  );
+}
+
+/* ------------------------- printable documents ------------------------- */
+
+/**
+ * Opens a print-only window. A separate document rather than a CSS print
+ * stylesheet, because a report card has to carry the crest, the school's
+ * bank details and nothing else from the app around it.
+ */
+function printDocument(title, body) {
+  const win = window.open('', '_blank', 'width=820,height=1000');
+
+  if (!win) {
+    return toast('Your browser blocked the print window. Allow pop-ups for this page.', true);
+  }
+
+  win.document.write(
+    '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(title) + '</title>' +
+    '<style>' +
+    'body{font-family:Georgia,serif;color:#111;margin:0;padding:38px 44px;font-size:13px}' +
+    '.crest{display:block;margin:0 auto 10px;max-width:190px}' +
+    'h1{text-align:center;font-size:17px;font-weight:400;margin:0 0 2px;letter-spacing:.02em}' +
+    'h2{text-align:center;font-size:13px;font-weight:400;margin:0 0 20px;color:#555}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:14px}' +
+    'th,td{padding:5px 8px;text-align:left;border-bottom:1px solid #ddd}' +
+    'th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;' +
+      'border-bottom:1.5px solid #111}' +
+    'td.n,th.n{text-align:right}' +
+    '.meta{width:100%;border:0;margin-bottom:18px}' +
+    '.meta td{border:0;padding:2px 0}' +
+    '.meta td:first-child{color:#666;width:120px}' +
+    '.sum{border-top:1.5px solid #111;font-weight:bold}' +
+    '.foot{margin-top:26px;padding-top:12px;border-top:1px solid #bf3c36;' +
+      'font-size:11px;color:#555;line-height:1.6}' +
+    '.sign{margin-top:38px;display:flex;justify-content:space-between;gap:40px}' +
+    '.sign div{flex:1;border-top:1px solid #111;padding-top:5px;font-size:11px;color:#555}' +
+    '@media print{body{padding:16px}}' +
+    '</style></head><body>' +
+    '<img class="crest" src="' + (HOA_LOGO || '') + '" alt="">' +
+    '<h1>' + esc(S.config.name.toUpperCase()) + '</h1>' +
+    body +
+    '<div class="foot">' +
+      '<div>Payments: GTBank 201122939110 · AGIB 003205010148754101 · Access 007110000076</div>' +
+      '<div>Accounts office: 7079715 / 5960492 / 9154626 / 6955636 · Fees are non-refundable.</div>' +
+    '</div>' +
+    '</body></html>'
+  );
+
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 350);
+}
+
+function printReceipt(payment, student) {
+  const due = billed(student, payment.term) - paidBy(student.id, payment.term);
+
+  printDocument('Receipt ' + payment.receipt,
+    '<h2>Official payment receipt</h2>' +
+    '<table class="meta"><tbody>' +
+      '<tr><td>Receipt no.</td><td><b>' + esc(payment.receipt) + '</b></td></tr>' +
+      '<tr><td>Date</td><td>' + esc(payment.date) + '</td></tr>' +
+      '<tr><td>Student</td><td>' + esc(student.name) + '</td></tr>' +
+      '<tr><td>Student ID</td><td>' + esc(student.adm) + '</td></tr>' +
+      '<tr><td>Class</td><td>' + esc(className(student.classId)) + '</td></tr>' +
+      '<tr><td>Term</td><td>' + esc(payment.term) + ', ' + esc(S.config.year) + '</td></tr>' +
+    '</tbody></table>' +
+
+    '<table><thead><tr><th>Description</th><th class="n">Amount</th></tr></thead><tbody>' +
+      '<tr><td>Fees paid — ' + esc(payment.method) +
+        (payment.reference ? ' (' + esc(payment.reference) + ')' : '') + '</td>' +
+        '<td class="n">' + money(payment.amount) + '</td></tr>' +
+      '<tr class="sum"><td>Received</td><td class="n">' + money(payment.amount) + '</td></tr>' +
+    '</tbody></table>' +
+
+    '<table class="meta"><tbody>' +
+      '<tr><td>Term billed</td><td>' + money(billed(student, payment.term)) + '</td></tr>' +
+      '<tr><td>Paid to date</td><td>' + money(paidBy(student.id, payment.term)) + '</td></tr>' +
+      '<tr><td>Balance</td><td><b>' + (due > 0 ? money(due) + ' outstanding'
+        : 'Fully settled') + '</b></td></tr>' +
+    '</tbody></table>' +
+
+    '<div class="sign"><div>Received by</div><div>Parent / guardian signature</div></div>'
+  );
+}
+
+async function printReportCard(student) {
+  // The cache is dropped whenever marks are saved, but a mark entered in
+  // another tab, or by another member of staff, will not have dropped it
+  // here. So re-read once before telling anyone there is nothing to print —
+  // "no marks entered" when marks plainly exist is the worst answer to give.
+  if (!S.analytics) await loadAnalytics();
+
+  let marks = studentMarks(student.id);
+
+  if (!marks.some((m) => m.percent !== null)) {
+    await loadAnalytics();
+    marks = studentMarks(student.id);
+  }
+
+  const term = S.config.currentTerm;
+
+  const bySubject = {};
+  marks.filter((m) => m.percent !== null).forEach((m) => {
+    bySubject[m.subjectId] = bySubject[m.subjectId] || [];
+    bySubject[m.subjectId].push(m);
+  });
+
+  if (!Object.keys(bySubject).length) {
+    return toast(
+      'No marks found for ' + student.name + '. Enter marks under Grades for '
+      + className(student.classId) + ' first.', true
+    );
+  }
+
+  // Position within the class, per subject.
+  const roll = studentsIn(student.classId);
+  const rows = Object.entries(bySubject).map(([subjectId, list]) => {
+    const avg = list.reduce((a, m) => a + m.percent, 0) / list.length;
+
+    const peers = roll.map((s) => {
+      const theirs = studentMarks(s.id)
+        .filter((m) => m.subjectId === subjectId && m.percent !== null);
+      return theirs.length
+        ? theirs.reduce((a, m) => a + m.percent, 0) / theirs.length
+        : null;
+    }).filter((v) => v !== null).sort((a, b) => b - a);
+
+    const position = peers.findIndex((v) => Math.abs(v - avg) < 0.05) + 1;
+
+    return {
+      subject: subjectName(subjectId),
+      avg: Math.round(avg * 10) / 10,
+      band: bandFor(avg),
+      position: position || null,
+      outOf: peers.length,
+      complete: list.every((m) => m.complete),
+    };
+  }).sort((a, b) => a.subject.localeCompare(b.subject));
+
+  const overall = Math.round(
+    (rows.reduce((a, r) => a + r.avg, 0) / rows.length) * 10
+  ) / 10;
+  const band = bandFor(overall);
+  const tally = studentAttendance(student.id);
+  const rate = attendanceRate(tally);
+  const incomplete = rows.some((r) => !r.complete);
+
+  printDocument('Report card — ' + student.name,
+    '<h2>Terminal report · ' + esc(term) + ', ' + esc(S.config.year) + '</h2>' +
+
+    '<table class="meta"><tbody>' +
+      '<tr><td>Student</td><td><b>' + esc(student.name) + '</b></td></tr>' +
+      '<tr><td>Student ID</td><td>' + esc(student.adm) + '</td></tr>' +
+      '<tr><td>Class</td><td>' + esc(className(student.classId)) +
+        ' · ' + roll.length + ' on roll</td></tr>' +
+    '</tbody></table>' +
+
+    '<table><thead><tr><th>Subject</th><th class="n">Mark</th>' +
+    '<th>Grade</th><th>Remark</th><th class="n">Position</th></tr></thead><tbody>' +
+    rows.map((r) =>
+      '<tr><td>' + esc(r.subject) + (r.complete ? '' : ' *') + '</td>' +
+      '<td class="n">' + r.avg + '</td>' +
+      '<td>' + esc(r.band.letter) + '</td>' +
+      '<td>' + esc(r.band.note) + '</td>' +
+      '<td class="n">' + (r.position ? r.position + ' of ' + r.outOf : '—') + '</td></tr>').join('') +
+    '<tr class="sum"><td>Overall average</td><td class="n">' + overall + '</td>' +
+    '<td>' + esc(band.letter) + '</td><td>' + esc(band.note) + '</td><td></td></tr>' +
+    '</tbody></table>' +
+
+    '<table class="meta"><tbody>' +
+      '<tr><td>Attendance</td><td>' + (rate === null ? 'not recorded'
+        : rate + '% · ' + tally.A + ' day(s) absent, ' + tally.L + ' late') + '</td></tr>' +
+      '<tr><td>Subjects</td><td>' + rows.length + ' assessed</td></tr>' +
+    '</tbody></table>' +
+
+    (incomplete
+      ? '<p style="font-size:11px;color:#8f2a25">* Not all assessment components ' +
+        'have been marked for this subject. The mark shown is scaled to what has ' +
+        'been recorded and will change when the remaining papers are entered.</p>'
+      : '') +
+
+    '<div class="sign"><div>Class teacher</div><div>Head teacher</div>' +
+    '<div>Parent / guardian</div></div>'
+  );
+}
+
+/* --------------------------- sample data --------------------------- */
+async function seed() {
+  if (S.students.length) {
+    return toast('Sample data is only for an empty portal.', true);
+  }
+
+  el('seed').disabled = true;
+  el('seed').textContent = 'Loading…';
+
+  // Real levels and real fees, so the demo reflects the actual bill.
+  await loadHoaFees();
+
+  const classes = S.classes;
+  const spread = ['ECD Level 2', 'Grade 1-3', 'Grade 4-6', 'Grade 7', 'Grade 9']
+    .map((name) => classes.find((c) => c.name === name))
+    .filter(Boolean);
+
+  const subjects = ['Mathematics', 'English Language', 'Integrated Science',
+    'Social Studies', 'Quranic Studies', 'Physical Education']
+    .map((name) => ({ id: uid(), name }));
+
+  const names = [
+    'Muhammed Jatta', 'Fatoumata Ceesay', 'Amadou Sanneh', 'Isatou Bah',
+    'Lamin Touray', 'Mariama Jallow', 'Ebrima Camara', 'Aminata Njie',
+    'Ousman Darboe', 'Binta Sow', 'Modou Faal', 'Jankeba Kanteh',
+  ];
+
+  const term = S.config.currentTerm;
+
+  const students = names.map((name, i) => ({
+    id: uid(),
+    name,
+    adm: 'HOA-2026-' + String(i + 1).padStart(4, '0'),
+    dob: (2013 + (i % 3)) + '-0' + ((i % 9) + 1) + '-1' + (i % 9),
+    gender: i % 2 ? 'Female' : 'Male',
+    classId: spread[i % spread.length].id,
+    isNew: i % 3 !== 0,   // a third are returning students, to show both rates
+    guardian: ['Mr', 'Mrs'][i % 2] + ' ' + name.split(' ')[1],
+    phone: '44' + (70 + i) + ' ' + (100 + i * 7),
+    status: 'Active',
+    admitted: today(),
+  }));
+
+  try {
+    await save('config/subjects', { items: subjects });
+
+    const promises = [];
+
+    students.forEach((s) => {
+      const body = Object.assign({}, s);
+      delete body.id;
+      promises.push(db.doc('students/' + s.id).set(body));
+    });
+
+    // A few payments so the fees screen has something in it.
+    const payments = [];
+    students.slice(0, 7).forEach((s, i) => {
+      const id = uid();
+      const full = billed(s, term);
+      const amount = i % 3 === 0 ? full : Math.round(full * 0.4);
+      const body = {
+        studentId: s.id, amount, date: today(), term,
+        method: ['Cash', 'Mobile money', 'Bank transfer'][i % 3],
+        reference: '', receipt: 'RCP-' + String(i + 1).padStart(5, '0'),
+        recordedAt: new Date().toISOString(),
+      };
+      payments.push(Object.assign({ id }, body));
+      promises.push(db.doc('payments/' + id).set(body));
+    });
+
+    await Promise.all(promises);
+
+    S.subjects = subjects;
+    S.students = students;
+    S.payments = payments;
+
+    S.page = 'dashboard';
+    render();
+    toast('Sample data loaded.');
+  } catch (error) {
+    console.error(error);
+    toast('Could not load all the sample data.', true);
+    await loadAll();
+    render();
+  }
+}
+
+boot();
+</script>
+</body>
+</html>

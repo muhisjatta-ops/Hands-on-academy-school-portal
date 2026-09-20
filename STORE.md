@@ -1,0 +1,136 @@
+# The school store — book shop and uniform shop
+
+The Proprietress manages the inventory. The store keeper supplies pupils,
+and only what their grade is entitled to. She sees a daily supply report on
+her dashboard. That is the whole request, and it is enforced by permissions
+on the routes — not by hiding buttons.
+
+## Install, in this order
+
+```bash
+cp -r backend/app/*      app/
+cp -r backend/database/* database/
+cp -r backend/tests/*    tests/
+
+php artisan migrate
+php artisan db:seed --class=RolePermissionSeeder   # replaces the existing one
+php artisan db:seed --class=StoreCatalogueSeeder   # needs HandsOnFeeSeeder first
+```
+
+Then paste `backend/routes/api-store.php` inside the
+`Route::middleware('two-factor')->group(...)` block in `routes/api.php`.
+
+`RolePermissionSeeder.php` here supersedes the one shipped with the staff
+attendance work. It is that file plus three store permissions and the
+`storekeeper` role; nothing was removed.
+
+## Who may do what
+
+| | See the shelf | Add items, set prices, receive deliveries | Supply a pupil |
+|---|---|---|---|
+| `super-admin` | yes | yes | yes |
+| `admin` — the Proprietress | yes | **yes** | **no** |
+| `storekeeper` | yes | **no** | **yes** |
+| `bursar` | yes | no | no |
+| `principal`, `teacher`, `parent`, `student` | no | no | no |
+
+Both gaps are deliberate.
+
+**The Proprietress cannot issue.** You asked for her to "add or change only",
+and for the store keeper to be the one who supplies. If she should be able
+to serve a pupil when he is away, delete `'store.issue'` from the
+`array_diff` on the `admin` role and re-seed.
+
+**The store keeper cannot add an item, change a price, or record a
+delivery.** He has one verb. That is what makes a stock count at the end of
+term mean anything: if the shelf is short, the ledger says who took what,
+and there is no way for the person at the counter to have quietly adjusted
+the figure to match.
+
+## There is no quantity column
+
+Stock is an append-only ledger, the same as money in this system. An item is
+defined once; every movement after that is a row. What is on the shelf is
+`sum(IN) − sum(OUT)`, computed on read.
+
+Even the opening count is a delivery in, noted as `Opening stock`, so the
+very first figure says where it came from and who entered it. A delivery
+entered wrongly is corrected by a second movement with a note, never by an
+edit — so the trail shows the mistake and the correction, not a tidied-up
+history.
+
+## Supply by grade
+
+`stock_item_grade_level` says which grades may draw an item. The store
+keeper picks a pupil; the portal asks
+`GET /api/store/students/{student}` and gets back only the items that
+pupil's grade allows, each marked issuable or not with the reason in plain
+words — "Out of stock", "Allowance already used this year" — so he can read
+it out to the parent standing in front of him.
+
+A pupil's grade comes from their most recent enrolment. A pupil admitted but
+never placed in a class has **no** grade, and that is refused rather than
+quietly treated as "any grade".
+
+An item with no grades listed is general stock anyone may draw. That absence
+is checked for explicitly, not inferred.
+
+## Endpoints
+
+| Method | Path | Permission |
+|---|---|---|
+| GET | `/api/store/catalogue` | `store.view` |
+| GET | `/api/store/students/{student}` | `store.view` |
+| GET | `/api/store/report?date=` | `store.view` |
+| GET | `/api/store/items/{item}/ledger` | `store.view` |
+| POST | `/api/store/issue` | `store.issue` |
+| POST | `/api/store/receive` | `store.manage` |
+| POST | `/api/store/items` | `store.manage` |
+| PATCH | `/api/store/items/{item}` | `store.manage` |
+| DELETE | `/api/store/items/{item}` | `store.manage` — retires, never deletes |
+
+`/api/store/report` is the daily supply report. It sums by item, because
+what the Proprietress needs at a glance is "eleven uniforms went out today",
+not eleven rows; the rows are in the same response for when she wants them,
+along with anything at or below its reorder level.
+
+## Two details worth knowing
+
+**Issuing takes a row lock.** The check and the write run in one transaction
+with the item row locked. Two counters issuing the last uniform at the same
+moment is not hypothetical in the first week of term: both would read "1
+left", both would pass, and the ledger would go to −1 with nothing to say
+which sale was the phantom.
+
+**Movements copy the item's name.** Rename "Uniform set · Grade 7" next year
+and last year's report still says what was actually handed over. Same rule
+as invoice lines copying their description.
+
+## The catalogue comes from the bill
+
+`StoreCatalogueSeeder` builds items from the published 2026/2027 fee
+schedule: a book pack, uniform set, stationery pack or abacus for each level
+that is charged for one, scoped to that level. Eighteen items across eight
+levels.
+
+That is not a shortcut. It is the only definition of "what this grade is
+entitled to" the school has already agreed and printed, and writing a second
+one in code would guarantee the two disagree within a term.
+
+**Grade 9 gets no items.** The published bill charges it for no book pack
+and no uniform — it pays an external exam fee, practical and lab fees
+instead. The seeder says so on every run. A leaving year that needs neither
+books nor uniform is unusual, so this belongs with the accounts office
+alongside the three fee totals still unreconciled.
+
+## Tests
+
+```bash
+php artisan test --filter=StoreTest
+```
+
+Seventeen cases, each permission one with its mirror: the store keeper can
+issue **and** cannot add an item or receive a delivery; the Proprietress can
+do both of those **and** cannot issue. Plus the grade scoping both ways, the
+allowance, the empty shelf, the daily report's one-day boundary, and that a
+renamed item does not rewrite what a movement says.
